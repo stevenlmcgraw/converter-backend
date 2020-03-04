@@ -1,17 +1,17 @@
 package com.slowdraw.converterbackend.domain;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import lombok.Builder;
+import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.HashMap;
 import java.util.Map;
 
-@Getter
-@Setter
-@NoArgsConstructor
+@Data
+@Builder(builderClassName = "ResultHistoryBuilder", toBuilder = true)
+@JsonDeserialize(builder = ResultHistory.ResultHistoryBuilder.class)
 @Document(collection = "result_history")
 public class ResultHistory {
 
@@ -20,5 +20,10 @@ public class ResultHistory {
 
     private String username;
 
-    private Map<String, Object> calculationAttributes = new HashMap<>();
+    private Map<String, Object> calculationAttributes;
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class ResultHistoryBuilder {
+
+    }
 }
