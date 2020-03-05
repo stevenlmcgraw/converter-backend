@@ -68,6 +68,5 @@ public class ResultHistoryService {
         }
 
         return new ResponseEntity<>(errorMap, HttpStatus.BAD_REQUEST);
-
     }
 }

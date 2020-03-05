@@ -7,14 +7,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @ControllerAdvice
-public class ResultHistoryAdvice {
+public class UserAdvice {
 
     @ResponseBody
-    @ExceptionHandler(ResultHistoryException.class)
-    public final ResponseEntity<ResultHistoryNotFoundResponse>
-        resultHistoryNotFoundResponseResponseEntity(ResultHistoryException exception) {
+    @ExceptionHandler(UserException.class)
+    public final ResponseEntity<UserNotFoundResponse>
+    resultHistoryNotFoundResponseResponseEntity(UserNotFoundResponse exception) {
 
-        ResultHistoryNotFoundResponse response = new ResultHistoryNotFoundResponse(exception.getMessage());
+        UserNotFoundResponse response = new UserNotFoundResponse(exception.getUserNotFound());
 
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
