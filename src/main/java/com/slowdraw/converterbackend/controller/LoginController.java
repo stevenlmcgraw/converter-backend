@@ -2,13 +2,11 @@ package com.slowdraw.converterbackend.controller;
 
 import com.slowdraw.converterbackend.domain.Role;
 import com.slowdraw.converterbackend.domain.SiteUser;
-import com.slowdraw.converterbackend.payload.ApiResponse;
-import com.slowdraw.converterbackend.payload.JwtAuthenticationResponse;
-import com.slowdraw.converterbackend.payload.LoginRequest;
-import com.slowdraw.converterbackend.payload.RegisterUsernameRequest;
+import com.slowdraw.converterbackend.payload.*;
 import com.slowdraw.converterbackend.repository.RoleRepository;
 import com.slowdraw.converterbackend.repository.UserRepository;
 import com.slowdraw.converterbackend.security.JwtTokenProvider;
+import com.slowdraw.converterbackend.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,10 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.Valid;
@@ -32,6 +27,8 @@ public class LoginController {
 
     private AuthenticationManager authenticationManager;
 
+    private UserService userService;
+
     private UserRepository userRepository;
 
     private RoleRepository roleRepository;
@@ -41,12 +38,14 @@ public class LoginController {
     private JwtTokenProvider jwtTokenProvider;
 
     public LoginController(AuthenticationManager authenticationManager,
+                           UserService userService,
                            UserRepository userRepository,
                            RoleRepository roleRepository,
                            PasswordEncoder passwordEncoder,
                            JwtTokenProvider jwtTokenProvider) {
 
         this.authenticationManager = authenticationManager;
+        this.userService = userService;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
@@ -102,4 +101,15 @@ public class LoginController {
         return ResponseEntity.created(uri)
                 .body(new ApiResponse(true, "Site user successfully registered."));
     }
+
+    @GetMapping("/getUsernameAvailability")
+    public UsernameAvailability getUsernameAvailability(@RequestParam(value = "username") String username) {
+        return new UsernameAvailability(userService.checkUsernameAvailability(username));
+    }
+
+    @GetMapping("/getEmailAvailability")
+    public EmailAvailability getEmailAvailability(@RequestParam(value = "email") String email) {
+        return new EmailAvailability(userService.checkEmailAvailability(email));
+    }
+
 }

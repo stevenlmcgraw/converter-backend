@@ -54,4 +54,12 @@ public class UserService {
 
         return new ResponseEntity<>(errorMap, HttpStatus.BAD_REQUEST);
     }
+
+    public Boolean checkUsernameAvailability(String username) {
+        return !userRepository.existsById(username);
+    }
+
+    public Boolean checkEmailAvailability(String email) {
+        return !userRepository.existsByEmail(email);
+    }
 }
