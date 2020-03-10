@@ -24,12 +24,6 @@ public class SiteUser {
 
     private String email;
 
-//    //parameterized constructor
-//    public SiteUser(String username, String password, String email) {
-//        this.username = username;
-//        this.password = password;
-//        this.email = email;
-//    }
 
     @DBRef
     private Set<Role> roles;
