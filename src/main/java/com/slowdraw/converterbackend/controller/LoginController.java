@@ -5,10 +5,15 @@ import com.slowdraw.converterbackend.domain.SiteUser;
 import com.slowdraw.converterbackend.payload.*;
 import com.slowdraw.converterbackend.repository.RoleRepository;
 import com.slowdraw.converterbackend.repository.UserRepository;
+import com.slowdraw.converterbackend.security.CurrentSiteUser;
 import com.slowdraw.converterbackend.security.JwtTokenProvider;
+import com.slowdraw.converterbackend.security.UserPrincipal;
 import com.slowdraw.converterbackend.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,6 +29,8 @@ import java.util.Collections;
 @RestController
 @RequestMapping("/auth")
 public class LoginController {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(LoginController.class);
 
     private AuthenticationManager authenticationManager;
 
@@ -110,6 +117,15 @@ public class LoginController {
     @GetMapping("/getEmailAvailability")
     public EmailAvailability getEmailAvailability(@RequestParam(value = "email") String email) {
         return new EmailAvailability(userService.checkEmailAvailability(email));
+    }
+
+    @GetMapping("/currentUser")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public SiteUserSummary getCurrentUser(@CurrentSiteUser UserPrincipal currentUser) {
+
+        LOGGER.debug("Made it to getCurrentUser()");
+
+        return new SiteUserSummary(currentUser.getUsername(), currentUser.getEmail());
     }
 
 }

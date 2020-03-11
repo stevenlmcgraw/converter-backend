@@ -18,7 +18,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(securedEnabled = true, jsr250Enabled = true, prePostEnabled = true)
+@EnableGlobalMethodSecurity(securedEnabled = true,
+        jsr250Enabled = true,
+        prePostEnabled = true,
+        proxyTargetClass = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private SiteUserDetailsService siteUserDetailsService;
@@ -78,7 +81,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .antMatchers("/auth/**")
                 .permitAll()
-                .antMatchers("/register/getUsernameAvailability")
+                .antMatchers("/auth/currentUser")
+                .permitAll()
+                .antMatchers("/auth/getUsernameAvailability", "/auth/getEmailAvailability")
                 .permitAll()
                 .antMatchers(HttpMethod.GET, "/resultHistory/**")
                 .permitAll()
