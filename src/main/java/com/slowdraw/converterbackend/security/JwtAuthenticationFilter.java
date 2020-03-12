@@ -2,6 +2,7 @@ package com.slowdraw.converterbackend.security;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,15 +24,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private SiteUserDetailsService siteUserDetailsService;
 
-    //default constructor
-    public JwtAuthenticationFilter() {
-
+    //setter injection
+    @Autowired
+    public void setJwtTokenProvider(JwtTokenProvider tokenProvider) {
+        this.tokenProvider = tokenProvider;
     }
 
-    //constructor injection
-    public JwtAuthenticationFilter(JwtTokenProvider tokenProvider,
-                                   SiteUserDetailsService siteUserDetailsService) {
-        this.tokenProvider = tokenProvider;
+    //setter injection
+    @Autowired
+    public void setSiteUserDetailsService(SiteUserDetailsService siteUserDetailsService) {
         this.siteUserDetailsService = siteUserDetailsService;
     }
 
@@ -45,10 +46,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = getJwtFromRequest(request);
 
             if(StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
+
                 String username = tokenProvider.getUserIdFromJWT(jwt);
 
                 UserDetails userDetails = siteUserDetailsService.loadUserByUsername(username);
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(userDetails,
+                                null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -62,9 +66,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {
+
         String bearerToken = request.getHeader("Authorization");
+
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7, bearerToken.length());
+            return bearerToken.substring(7);
         }
         return null;
     }

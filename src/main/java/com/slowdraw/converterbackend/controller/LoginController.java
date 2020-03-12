@@ -4,16 +4,11 @@ import com.slowdraw.converterbackend.domain.Role;
 import com.slowdraw.converterbackend.domain.SiteUser;
 import com.slowdraw.converterbackend.payload.*;
 import com.slowdraw.converterbackend.repository.RoleRepository;
-import com.slowdraw.converterbackend.repository.UserRepository;
-import com.slowdraw.converterbackend.security.CurrentSiteUser;
+import com.slowdraw.converterbackend.repository.SiteUserRepository;
 import com.slowdraw.converterbackend.security.JwtTokenProvider;
-import com.slowdraw.converterbackend.security.UserPrincipal;
-import com.slowdraw.converterbackend.service.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.slowdraw.converterbackend.service.SiteUserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -30,13 +25,11 @@ import java.util.Collections;
 @RequestMapping("/auth")
 public class LoginController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(LoginController.class);
-
     private AuthenticationManager authenticationManager;
 
-    private UserService userService;
+    private SiteUserService siteUserService;
 
-    private UserRepository userRepository;
+    private SiteUserRepository siteUserRepository;
 
     private RoleRepository roleRepository;
 
@@ -45,15 +38,15 @@ public class LoginController {
     private JwtTokenProvider jwtTokenProvider;
 
     public LoginController(AuthenticationManager authenticationManager,
-                           UserService userService,
-                           UserRepository userRepository,
+                           SiteUserService siteUserService,
+                           SiteUserRepository siteUserRepository,
                            RoleRepository roleRepository,
                            PasswordEncoder passwordEncoder,
                            JwtTokenProvider jwtTokenProvider) {
 
         this.authenticationManager = authenticationManager;
-        this.userService = userService;
-        this.userRepository = userRepository;
+        this.siteUserService = siteUserService;
+        this.siteUserRepository = siteUserRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
@@ -81,7 +74,7 @@ public class LoginController {
     public ResponseEntity<?> registerSiteUser(
             @Valid @RequestBody RegisterUsernameRequest registerUsernameRequest) {
 
-        if(userRepository.existsById(registerUsernameRequest.getUsername())) {
+        if(siteUserRepository.existsById(registerUsernameRequest.getUsername())) {
             return new ResponseEntity(
                     new ApiResponse(false, "Username is already in use."),
                     HttpStatus.BAD_REQUEST);
@@ -99,7 +92,7 @@ public class LoginController {
 
         user.setRoles(Collections.singleton(role));
 
-        SiteUser persistedUser = userRepository.save(user);
+        SiteUser persistedUser = siteUserRepository.save(user);
 
         URI uri = ServletUriComponentsBuilder
                 .fromCurrentContextPath().path("/**")
@@ -111,21 +104,11 @@ public class LoginController {
 
     @GetMapping("/getUsernameAvailability")
     public UsernameAvailability getUsernameAvailability(@RequestParam(value = "username") String username) {
-        return new UsernameAvailability(userService.checkUsernameAvailability(username));
+        return new UsernameAvailability(siteUserService.checkUsernameAvailability(username));
     }
 
     @GetMapping("/getEmailAvailability")
     public EmailAvailability getEmailAvailability(@RequestParam(value = "email") String email) {
-        return new EmailAvailability(userService.checkEmailAvailability(email));
+        return new EmailAvailability(siteUserService.checkEmailAvailability(email));
     }
-
-    @GetMapping("/currentUser")
-    @PreAuthorize("hasRole('ROLE_USER')")
-    public SiteUserSummary getCurrentUser(@CurrentSiteUser UserPrincipal currentUser) {
-
-        LOGGER.debug("Made it to getCurrentUser()");
-
-        return new SiteUserSummary(currentUser.getUsername(), currentUser.getEmail());
-    }
-
 }
