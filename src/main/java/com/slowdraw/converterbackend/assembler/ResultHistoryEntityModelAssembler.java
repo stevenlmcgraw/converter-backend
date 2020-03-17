@@ -18,7 +18,7 @@ public class ResultHistoryEntityModelAssembler implements RepresentationModelAss
     public EntityModel<ResultHistory> toModel(ResultHistory entity) {
         return new EntityModel<>(entity,
                 linkTo(methodOn(ResultHistoryController.class).getSpecificResultHistory(entity.getUsername(), entity.getId()))
-                        .withRel("getSingleResultHistory"),
+                        .withSelfRel(),
                 linkTo(methodOn(ResultHistoryController.class).getUsernameResultHistory(entity.getUsername()))
                         .withRel("getAllUsernameResultHistory"),
                 linkTo(methodOn(ResultHistoryController.class)
