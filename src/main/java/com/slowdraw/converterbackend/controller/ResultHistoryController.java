@@ -2,12 +2,15 @@ package com.slowdraw.converterbackend.controller;
 
 import com.slowdraw.converterbackend.assembler.ResultHistoryEntityModelAssembler;
 import com.slowdraw.converterbackend.domain.ResultHistory;
+import com.slowdraw.converterbackend.security.CurrentSiteUser;
+import com.slowdraw.converterbackend.security.UserPrincipal;
 import com.slowdraw.converterbackend.service.ResultHistoryService;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,7 +48,7 @@ public class ResultHistoryController {
     }
 
     @PostMapping
-    public Object saveResultHistory(@Valid @RequestBody ResultHistory resultHistory, BindingResult bindingResult) {
+    public Object saveResultHistory(@CurrentSiteUser UserPrincipal currentUser, @Valid @RequestBody ResultHistory resultHistory, BindingResult bindingResult) {
 
         if(bindingResult.hasErrors())
             return resultHistoryService.errorMap(bindingResult);

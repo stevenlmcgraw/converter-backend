@@ -21,6 +21,8 @@ public class ResultHistory {
 
     private String username;
 
+    private String title;
+
     private String message;
 
     private Date entryDate;
