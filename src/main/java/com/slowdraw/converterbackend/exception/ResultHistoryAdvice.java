@@ -16,6 +16,6 @@ public class ResultHistoryAdvice {
 
         ResultHistoryNotFoundResponse response = new ResultHistoryNotFoundResponse(exception.getMessage());
 
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(response, HttpStatus.NO_CONTENT);
     }
 }

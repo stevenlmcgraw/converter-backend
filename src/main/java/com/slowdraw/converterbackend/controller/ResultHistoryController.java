@@ -2,6 +2,7 @@ package com.slowdraw.converterbackend.controller;
 
 import com.slowdraw.converterbackend.assembler.ResultHistoryEntityModelAssembler;
 import com.slowdraw.converterbackend.domain.ResultHistory;
+import com.slowdraw.converterbackend.exception.ResultHistoryException;
 import com.slowdraw.converterbackend.security.CurrentSiteUser;
 import com.slowdraw.converterbackend.security.UserPrincipal;
 import com.slowdraw.converterbackend.service.ResultHistoryService;
@@ -40,10 +41,14 @@ public class ResultHistoryController {
     @GetMapping("/{username}")
     public CollectionModel<EntityModel<ResultHistory>> getUsernameResultHistory(@PathVariable String username) {
 
+        if(resultHistoryService.findAllByUsername(username).isEmpty()) {
+            throw new ResultHistoryException("No calculation/conversion result history for user.");
+        }
+
         return new CollectionModel<>(resultHistoryService.findAllByUsername(username)
                 .stream().map(result -> resultHistoryEntityModelAssembler.toModel(result))
                 .collect(Collectors.toList()),
-                new Link("http://localhost:9191/resultHistory").withRel("getUsernameResultHistory")
+                new Link("http://localhost:9191/resultHistory").withSelfRel()
                 );
     }
 
