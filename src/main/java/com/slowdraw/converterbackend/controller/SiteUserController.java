@@ -1,27 +1,31 @@
 package com.slowdraw.converterbackend.controller;
 
-import com.slowdraw.converterbackend.domain.SiteUser;
-import com.slowdraw.converterbackend.payload.SiteUserProfile;
+import com.slowdraw.converterbackend.assembler.SiteUserEntityModelAssembler;
+import com.slowdraw.converterbackend.exception.FormulaException;
 import com.slowdraw.converterbackend.payload.SiteUserSummary;
-import com.slowdraw.converterbackend.repository.SiteUserRepository;
 import com.slowdraw.converterbackend.security.CurrentSiteUser;
 import com.slowdraw.converterbackend.security.UserPrincipal;
 import com.slowdraw.converterbackend.service.SiteUserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/user")
 public class SiteUserController {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(SiteUserController.class);
+
     private SiteUserService siteUserService;
+    private SiteUserEntityModelAssembler siteUserEntityModelAssembler;
 
     //constructor injection
-    public SiteUserController(SiteUserService siteUserService) {
+    public SiteUserController(SiteUserService siteUserService,
+                              SiteUserEntityModelAssembler siteUserEntityModelAssembler) {
         this.siteUserService = siteUserService;
+        this.siteUserEntityModelAssembler = siteUserEntityModelAssembler;
     }
 
     @GetMapping("/currentUser")
@@ -32,10 +36,22 @@ public class SiteUserController {
     }
 
     @GetMapping("/{username}")
-    public SiteUserProfile getSiteUserProfile(@PathVariable(value = "username") String username) {
+    public EntityModel<?> getSiteUserProfile(@PathVariable(value = "username") String username) {
 
-        SiteUser user = siteUserService.findUserById(username);
+        if(siteUserService.getUsernameFavoritesList(username).isEmpty()) {
+            throw new FormulaException("Username has no favorites stored. Sorry mang.");
+        }
 
-        return new SiteUserProfile(user.getUsername());
+        return new EntityModel<>(siteUserEntityModelAssembler
+                .toModel(siteUserService.findUserById(username)));
+    }
+
+    @PostMapping("/{username}/{formulaName}")
+    public Object addFormulaToSiteUserFavoritesSet(@PathVariable(value = "username") String username,
+        @PathVariable(value = "formulaName") String formulaName) {
+
+        return new EntityModel<>(siteUserEntityModelAssembler
+                .toModel(siteUserService.saveFormulaToFavoritesSet(username, formulaName))
+                );
     }
 }

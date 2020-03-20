@@ -35,7 +35,8 @@ public class ResultHistoryController {
     @GetMapping("/{username}/{id}")
     public EntityModel<?> getSpecificResultHistory(@PathVariable String username, @PathVariable String id) {
 
-        return new EntityModel<>(resultHistoryEntityModelAssembler.toModel(resultHistoryService.findById(id)));
+        return new EntityModel<>(resultHistoryEntityModelAssembler
+                .toModel(resultHistoryService.findById(id)));
     }
 
     @GetMapping("/{username}")

@@ -11,7 +11,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Component
-public class ResultHistoryEntityModelAssembler implements RepresentationModelAssembler<ResultHistory, EntityModel<ResultHistory>> {
+public class ResultHistoryEntityModelAssembler
+        implements RepresentationModelAssembler<ResultHistory, EntityModel<ResultHistory>> {
 
 
     @Override

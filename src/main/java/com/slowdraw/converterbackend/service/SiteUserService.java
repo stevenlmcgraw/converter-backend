@@ -1,24 +1,37 @@
 package com.slowdraw.converterbackend.service;
 
+import com.slowdraw.converterbackend.domain.Formula;
 import com.slowdraw.converterbackend.domain.SiteUser;
 import com.slowdraw.converterbackend.exception.UserException;
 import com.slowdraw.converterbackend.repository.SiteUserRepository;
+import com.slowdraw.converterbackend.security.JwtTokenProvider;
 import lombok.var;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class SiteUserService {
 
-    private SiteUserRepository siteUserRepository;
+    private static final Logger LOGGER = LoggerFactory.getLogger(SiteUserService.class);
 
-    public SiteUserService(SiteUserRepository siteUserRepository) {
+    private SiteUserRepository siteUserRepository;
+    private FormulaService formulaService;
+
+    public SiteUserService(SiteUserRepository siteUserRepository, FormulaService formulaService) {
         this.siteUserRepository = siteUserRepository;
+        this.formulaService = formulaService;
     }
 
     public SiteUser persistNewUser(SiteUser user) {
@@ -28,7 +41,7 @@ public class SiteUserService {
     public SiteUser findUserById(String username) {
         return siteUserRepository.findById(username)
                 .orElseThrow(() ->
-                        new UserException("Username " + " not found."));
+                        new UserException("Username not found."));
     }
 
     public SiteUser updateUserPassword(String username, String newPassword) {
@@ -36,7 +49,7 @@ public class SiteUserService {
                 user -> {
                     user.setPassword(newPassword);
                     return siteUserRepository.save(user);
-                }).orElseThrow(() -> new UserException("Username " + " not found.")
+                }).orElseThrow(() -> new UserException("Username not found.")
         );
     }
 
@@ -53,6 +66,37 @@ public class SiteUserService {
         }
 
         return new ResponseEntity<>(errorMap, HttpStatus.BAD_REQUEST);
+    }
+
+    public Set<Formula> getUsernameFavoritesList(String username) {
+
+        SiteUser siteUser = siteUserRepository.findById(username)
+                .orElseThrow(() ->
+                        new UserException("Username ain't a valid username, bud."));
+
+        return siteUser.getFavoritesSet();
+    }
+
+    public SiteUser saveFormulaToFavoritesSet(String username, String formulaName) {
+
+        if(siteUserRepository.findById(username).get().getFavoritesSet() == null) {
+            return siteUserRepository.findById(username)
+                    .map(user -> {
+                        user.setFavoritesSet(Stream.of(formulaService
+                                .getSingleFormulaInfo(formulaName))
+                                .collect(Collectors.toSet()));
+                        return siteUserRepository.save(user);
+                    }).orElseThrow(() ->
+                            new UserException("I'm sorry, but that username does not exist."));
+        }
+
+        return siteUserRepository.findById(username).map(
+                user -> {
+                    user.addFormulaToFavoritesSet(formulaService
+                            .getSingleFormulaInfo(formulaName));
+                    return siteUserRepository.save(user);
+                }
+        ).orElseThrow(() -> new UserException("Username not found, partner."));
     }
 
     public Boolean checkUsernameAvailability(String username) {

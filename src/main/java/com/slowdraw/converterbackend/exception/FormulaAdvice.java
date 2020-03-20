@@ -7,15 +7,15 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @ControllerAdvice
-public class UserAdvice {
+public class FormulaAdvice {
 
     @ResponseBody
-    @ExceptionHandler(UserException.class)
-    public final ResponseEntity<UserNotFoundResponse>
-    userNotFoundResponseResponseEntity(UserException exception) {
+    @ExceptionHandler(FormulaException.class)
+    public final ResponseEntity<FormulaNotFoundResponse>
+        formulaNotFoundResponseResponseEntity(FormulaException exceptMe) {
 
-        UserNotFoundResponse response = new UserNotFoundResponse(exception.getMessage());
+        FormulaNotFoundResponse response = new FormulaNotFoundResponse(exceptMe.getMessage());
 
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(response, HttpStatus.NO_CONTENT);
     }
 }

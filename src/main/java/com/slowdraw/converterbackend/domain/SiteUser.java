@@ -9,6 +9,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -24,9 +25,18 @@ public class SiteUser {
 
     private String email;
 
+    @DBRef
+    private Set<Formula> favoritesSet;
 
     @DBRef
     private Set<Role> roles;
+
+    //helper function
+    public Set<Formula> addFormulaToFavoritesSet(Formula formula) {
+        this.favoritesSet.add(formula);
+
+        return this.favoritesSet;
+    }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class UserBuilder {
