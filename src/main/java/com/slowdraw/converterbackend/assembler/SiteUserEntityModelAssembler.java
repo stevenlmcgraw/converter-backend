@@ -21,7 +21,16 @@ public class SiteUserEntityModelAssembler
 
         return new EntityModel<>(entity,
                 linkTo(methodOn(SiteUserController.class).getSiteUserProfile(entity.getUsername()))
-                        .withRel("getSiteUserProfile")
+                        .withRel("getSiteUserProfile"),
+                linkTo(methodOn(SiteUserController.class)
+                        .addFormulaToSiteUserFavoritesSet(entity.getUsername(), null))
+                        .withRel("addFormulaToFavorites"),
+                linkTo(methodOn(SiteUserController.class)
+                        .deleteFormulaFromUsernameFavorites(entity.getUsername(), null))
+                        .withRel("deleteFormulaFromFavorites"),
+                linkTo(methodOn(SiteUserController.class)
+                        .deleteAllUsernameFavorites(entity.getUsername()))
+                        .withRel("deleteAllFormulasFromFavorites")
                 );
     }
 

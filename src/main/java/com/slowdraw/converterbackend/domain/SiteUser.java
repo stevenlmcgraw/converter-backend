@@ -31,11 +31,23 @@ public class SiteUser {
     @DBRef
     private Set<Role> roles;
 
-    //helper function
+    //helper functions for manipulating Set<Formula>
     public Set<Formula> addFormulaToFavoritesSet(Formula formula) {
-        this.favoritesSet.add(formula);
+        favoritesSet.add(formula);
 
-        return this.favoritesSet;
+        return favoritesSet;
+    }
+
+    public Set<Formula> removeFormulaFromFavoritesSet(Formula formula) {
+        this.favoritesSet.remove(formula);
+
+        return favoritesSet;
+    }
+
+    public Set<Formula> removeAllFormulasFromFavoritesSet() {
+        favoritesSet.clear();
+
+        return favoritesSet;
     }
 
     @JsonPOJOBuilder(withPrefix = "")

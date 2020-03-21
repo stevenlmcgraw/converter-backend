@@ -18,16 +18,18 @@ public class ResultHistoryEntityModelAssembler
     @Override
     public EntityModel<ResultHistory> toModel(ResultHistory entity) {
         return new EntityModel<>(entity,
-                linkTo(methodOn(ResultHistoryController.class).getSpecificResultHistory(entity.getUsername(), entity.getId()))
+                linkTo(methodOn(ResultHistoryController.class)
+                        .getSpecificResultHistory(entity.getUsername(), entity.getId()))
                         .withSelfRel(),
-                linkTo(methodOn(ResultHistoryController.class).getUsernameResultHistory(entity.getUsername()))
+                linkTo(methodOn(ResultHistoryController.class)
+                        .getUsernameResultHistory(entity.getUsername()))
                         .withRel("getAllUsernameResultHistory"),
                 linkTo(methodOn(ResultHistoryController.class)
                         .deleteSingleResultHistory(entity.getUsername(), entity.getId()))
-                        .withRel("deleteSpecificResultHistory")
-//                new Link("http://localhost:9191/resultHistory/{username}/{id}" + entity.getId(),
-//                        entity.getUsername()).withRel("updateSpecificUsernameResult"),
-//                new Link("http://localhost:9191/resultHistory" + entity).withRel("saveResultHistory")
+                        .withRel("deleteSpecificResultHistory"),
+                linkTo(methodOn(ResultHistoryController.class)
+                        .deleteUsernameResultHistory(null))
+                        .withRel("deleteAllUsernameResultHistory")
         );
     }
 

@@ -48,8 +48,7 @@ public class ResultHistoryController {
 
         return new CollectionModel<>(resultHistoryService.findAllByUsername(username)
                 .stream().map(result -> resultHistoryEntityModelAssembler.toModel(result))
-                .collect(Collectors.toList()),
-                new Link("http://localhost:9191/resultHistory").withSelfRel()
+                .collect(Collectors.toList())
                 );
     }
 
@@ -87,7 +86,7 @@ public class ResultHistoryController {
     }
 
     @DeleteMapping("/delete/{username}")
-    public ResponseEntity<?> deleteUsernameResultHistory(@PathVariable String username) {
+    public @ResponseBody ResponseEntity<?> deleteUsernameResultHistory(@PathVariable String username) {
 
         resultHistoryService.deleteUsernameAllResultHistory(username);
 

@@ -46,12 +46,29 @@ public class SiteUserController {
                 .toModel(siteUserService.findUserById(username)));
     }
 
-    @PostMapping("/{username}/{formulaName}")
+    @PostMapping("/{username}/favorites/{formulaName}")
     public Object addFormulaToSiteUserFavoritesSet(@PathVariable(value = "username") String username,
         @PathVariable(value = "formulaName") String formulaName) {
 
         return new EntityModel<>(siteUserEntityModelAssembler
                 .toModel(siteUserService.saveFormulaToFavoritesSet(username, formulaName))
                 );
+    }
+
+    @DeleteMapping("/{username}/favorites/delete/{formulaName}")
+    public EntityModel<?> deleteFormulaFromUsernameFavorites(
+            @PathVariable(value = "username") String username,
+            @PathVariable(value = "formulaName") String formulaName) {
+
+        return new EntityModel<>(siteUserEntityModelAssembler
+                .toModel(siteUserService.deleteSingleFormulaFromFavorite(username, formulaName)));
+    }
+
+    @DeleteMapping("/{username}/favorites/delete")
+    public EntityModel<?> deleteAllUsernameFavorites
+            (@PathVariable(value = "username") String username) {
+
+        return new EntityModel<>(siteUserEntityModelAssembler
+                .toModel(siteUserService.deleteAllFavorites(username)));
     }
 }
