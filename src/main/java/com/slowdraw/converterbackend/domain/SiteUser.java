@@ -25,30 +25,11 @@ public class SiteUser {
 
     private String email;
 
-    private Set<Formula> favoritesSet;
+    @DBRef
+    private List<Formula> favoritesList;
 
     @DBRef
     private Set<Role> roles;
-
-    //helper functions for manipulating Set<Formula>
-    public Set<Formula> addFormulaToFavoritesSet(Formula formula) {
-
-        favoritesSet.add(formula);
-
-        return favoritesSet;
-    }
-
-    public Set<Formula> removeFormulaFromFavoritesSet(Formula formula) {
-        this.favoritesSet.remove(formula);
-
-        return favoritesSet;
-    }
-
-    public Set<Formula> removeAllFormulasFromFavoritesSet() {
-        favoritesSet.clear();
-
-        return favoritesSet;
-    }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class UserBuilder {

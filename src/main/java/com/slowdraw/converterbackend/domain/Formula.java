@@ -18,8 +18,6 @@ public class Formula {
 
     private String formulaUrl;
 
-    private Integer position;
-
     @JsonPOJOBuilder(withPrefix = "")
     public static class FormulaBuilder {
 

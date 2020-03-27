@@ -13,9 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -56,29 +56,22 @@ public class SiteUserService {
         siteUserRepository.deleteById(username);
     }
 
-    public Set<Formula> getUsernameFavoritesSet(String username) {
+    public List<Formula> getUsernameFavoritesSet(String username) {
 
         SiteUser siteUser = siteUserRepository.findById(username)
                 .orElseThrow(() ->
                         new UserException("Username ain't a valid username, bud."));
 
-        return siteUser.getFavoritesSet();
+        return siteUser.getFavoritesList();
     }
 
     public SiteUser modifyUsernameFavoritesSet(String username, List<String> newPositions) {
 
-        LOGGER.info("*@*@*@*SiteUserService modifyFaves() username is: " + username);
-        LOGGER.info("*@*@*@*SiteUserService modifyFaves() list is: " + newPositions);
-
         return siteUserRepository.findById(username).map(
                 user -> {
-                    user.setFavoritesSet(user.getFavoritesSet().stream().map(
-                            formula -> {
-                                formula.setPosition(
-                                        newPositions.indexOf(formula.getFormulaName()));
-                                return formula;
-                            }
-                    ).collect(Collectors.toSet()));
+                    user.setFavoritesList(newPositions.stream()
+                            .map(formula -> formulaService.getSingleFormulaInfo(formula)
+                    ).collect(Collectors.toList()));
                     return siteUserRepository.save(user);
                 }
         ).orElseThrow(() -> new UserException("Username exists not!"));
@@ -87,17 +80,13 @@ public class SiteUserService {
     public SiteUser saveFormulaToFavoritesSet(String username, String formulaName) {
 
         //if SiteUser has no favorites create Set
-        if(siteUserRepository.findById(username).get().getFavoritesSet() == null |
-        siteUserRepository.findById(username).get().getFavoritesSet().size() == 0) {
+        if(siteUserRepository.findById(username).get().getFavoritesList() == null |
+        siteUserRepository.findById(username).get().getFavoritesList().size() == 0) {
             return siteUserRepository.findById(username).map(
                     user -> {
-                        user.setFavoritesSet(Stream.of(formulaService
-                                .getSingleFormulaInfo(formulaName)).map(
-                                        formula -> {
-                                            formula.setPosition(0);
-                                            return formula;
-                                        })
-                                .collect(Collectors.toSet()));
+                        user.setFavoritesList(Stream.of(formulaService
+                                .getSingleFormulaInfo(formulaName))
+                                .collect(Collectors.toList()));
 
                         return siteUserRepository.save(user);
                     }).orElseThrow(() ->
@@ -106,7 +95,7 @@ public class SiteUserService {
 
         //make sure there are no duplicates in favorites list
         if(!siteUserRepository.findById(username).get()
-                .getFavoritesSet().stream().filter(
+                .getFavoritesList().stream().filter(
                         formula ->
                                 formula.getFormulaName().equals(formulaName))
                 .collect(Collectors.toList()).isEmpty()) {
@@ -118,12 +107,8 @@ public class SiteUserService {
         //add to favorites list and set position
         return siteUserRepository.findById(username).map(
                 user -> {
-                    user.addFormulaToFavoritesSet(formulaService
-                            .getSingleFormulaInfo(formulaName)).stream()
-                            .filter(
-                                    formula ->
-                                            formula.getFormulaName().equals(formulaName))
-                            .findAny().get().setPosition(user.getFavoritesSet().size() - 1);
+                    user.getFavoritesList()
+                            .add(formulaService.getSingleFormulaInfo(formulaName));
 
                     return siteUserRepository.save(user);
                 }
@@ -134,7 +119,7 @@ public class SiteUserService {
 
         return siteUserRepository.findById(username).map(
                 user -> {
-                    user.removeAllFormulasFromFavoritesSet();
+                    user.setFavoritesList(Collections.emptyList());
                     return siteUserRepository.save(user);
                 }
         ).orElseThrow(() -> new UserException("Username does not exist, dude."));
@@ -144,8 +129,11 @@ public class SiteUserService {
 
         return siteUserRepository.findById(username).map(
                 user -> {
-                    user.removeFormulaFromFavoritesSet(
-                            formulaService.getSingleFormulaInfo(formulaName));
+                    user.setFavoritesList(user.getFavoritesList().stream().filter(
+                            formula ->
+                                    !formula.getFormulaName().equals(formulaName)
+                    ).collect(Collectors.toList()));
+
                     return siteUserRepository.save(user);
                 }
         ).orElseThrow(() -> new UserException("Username not found."));
