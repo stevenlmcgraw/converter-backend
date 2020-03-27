@@ -13,6 +13,9 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+import java.util.Arrays;
+
 @RestController
 @RequestMapping("/user")
 public class SiteUserController {
@@ -54,6 +57,17 @@ public class SiteUserController {
         return new EntityModel<>(siteUserEntityModelAssembler
                 .toModel(siteUserService.saveFormulaToFavoritesSet(username, formulaName))
                 );
+    }
+
+    @PutMapping("/{username}/favorites/reorder")
+    public EntityModel<?> updateUsernameFavoritesOrder
+            (@PathVariable(value = "username") String username,
+             @Valid @RequestBody String[] newOrderArray) {
+
+        return new EntityModel<>(siteUserEntityModelAssembler
+                .toModel(siteUserService
+                        .modifyUsernameFavoritesSet(username, Arrays.asList(newOrderArray))));
+
     }
 
     @DeleteMapping("/{username}/favorites/delete/{formulaName}")

@@ -65,8 +65,23 @@ public class SiteUserService {
         return siteUser.getFavoritesSet();
     }
 
-    public SiteUser modifyUsernameFavoritesSet(String username, List<Formula> updatedFavorites) {
-        return null;
+    public SiteUser modifyUsernameFavoritesSet(String username, List<String> newPositions) {
+
+        LOGGER.info("*@*@*@*SiteUserService modifyFaves() username is: " + username);
+        LOGGER.info("*@*@*@*SiteUserService modifyFaves() list is: " + newPositions);
+
+        return siteUserRepository.findById(username).map(
+                user -> {
+                    user.setFavoritesSet(user.getFavoritesSet().stream().map(
+                            formula -> {
+                                formula.setPosition(
+                                        newPositions.indexOf(formula.getFormulaName()));
+                                return formula;
+                            }
+                    ).collect(Collectors.toSet()));
+                    return siteUserRepository.save(user);
+                }
+        ).orElseThrow(() -> new UserException("Username exists not!"));
     }
 
     public SiteUser saveFormulaToFavoritesSet(String username, String formulaName) {
