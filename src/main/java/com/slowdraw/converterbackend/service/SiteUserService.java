@@ -79,7 +79,7 @@ public class SiteUserService {
 
     public SiteUser saveFormulaToFavoritesSet(String username, String formulaName) {
 
-        //if SiteUser has no favorites create Set
+        //if SiteUser has no favorites create List and add formula
         if(siteUserRepository.findById(username).get().getFavoritesList() == null |
         siteUserRepository.findById(username).get().getFavoritesList().size() == 0) {
             return siteUserRepository.findById(username).map(
@@ -104,7 +104,7 @@ public class SiteUserService {
                     .orElseThrow(() -> new UserException("Username not found.")));
         }
 
-        //add to favorites list and set position
+        //add to favorites list
         return siteUserRepository.findById(username).map(
                 user -> {
                     user.getFavoritesList()
