@@ -2,6 +2,7 @@ package com.slowdraw.converterbackend.controller;
 
 import com.slowdraw.converterbackend.assembler.SiteUserEntityModelAssembler;
 import com.slowdraw.converterbackend.exception.FormulaException;
+import com.slowdraw.converterbackend.exception.UserException;
 import com.slowdraw.converterbackend.payload.SiteUserSummary;
 import com.slowdraw.converterbackend.security.CurrentSiteUser;
 import com.slowdraw.converterbackend.security.UserPrincipal;
@@ -38,8 +39,8 @@ public class SiteUserController {
     @GetMapping("/{username}")
     public EntityModel<?> getSiteUserProfile(@PathVariable(value = "username") String username) {
 
-        if(siteUserService.getUsernameFavoritesList(username).isEmpty()) {
-            throw new FormulaException("Username has no favorites stored. Sorry mang.");
+        if(siteUserService.findUserById(username) == null) {
+            throw new UserException("Username does not exist. Sorry.");
         }
 
         return new EntityModel<>(siteUserEntityModelAssembler

@@ -25,7 +25,6 @@ public class SiteUser {
 
     private String email;
 
-    @DBRef
     private Set<Formula> favoritesSet;
 
     @DBRef
@@ -33,6 +32,7 @@ public class SiteUser {
 
     //helper functions for manipulating Set<Formula>
     public Set<Formula> addFormulaToFavoritesSet(Formula formula) {
+
         favoritesSet.add(formula);
 
         return favoritesSet;
