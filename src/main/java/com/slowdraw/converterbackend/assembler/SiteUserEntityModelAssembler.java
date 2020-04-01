@@ -23,7 +23,7 @@ public class SiteUserEntityModelAssembler
                 linkTo(methodOn(SiteUserController.class).getSiteUserProfile(entity.getUsername()))
                         .withRel("getSiteUserProfile"),
                 linkTo(methodOn(SiteUserController.class)
-                        .addFormulaToSiteUserFavoritesSet(entity.getUsername(), null))
+                        .addFormulaToSiteUserFavoritesList(entity.getUsername(), null))
                         .withRel("addFormulaToFavorites"),
                 linkTo(methodOn(SiteUserController.class)
                         .deleteFormulaFromUsernameFavorites(entity.getUsername(), null))

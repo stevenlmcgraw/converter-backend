@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -25,7 +26,7 @@ public class SiteUser {
     private String email;
 
     @DBRef
-    private List<Formula> favoritesList;
+    private List<Formula> favoritesList = new ArrayList<>();
 
     @DBRef
     private Set<Role> roles;

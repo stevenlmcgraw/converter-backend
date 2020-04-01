@@ -51,11 +51,11 @@ public class SiteUserController {
     }
 
     @PostMapping("/{username}/favorites/{formulaName}")
-    public Object addFormulaToSiteUserFavoritesSet(@PathVariable(value = "username") String username,
+    public Object addFormulaToSiteUserFavoritesList(@PathVariable(value = "username") String username,
         @PathVariable(value = "formulaName") String formulaName) {
 
         return new EntityModel<>(siteUserEntityModelAssembler
-                .toModel(siteUserService.saveFormulaToFavoritesSet(username, formulaName))
+                .toModel(siteUserService.saveFormulaToFavoritesList(username, formulaName))
                 );
     }
 
@@ -66,7 +66,7 @@ public class SiteUserController {
 
         return new EntityModel<>(siteUserEntityModelAssembler
                 .toModel(siteUserService
-                        .modifyUsernameFavoritesSet(username, Arrays.asList(newOrderArray))));
+                        .modifyUsernameFavoritesList(username, Arrays.asList(newOrderArray))));
 
     }
 

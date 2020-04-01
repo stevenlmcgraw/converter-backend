@@ -65,7 +65,7 @@ public class SiteUserService {
         return siteUser.getFavoritesList();
     }
 
-    public SiteUser modifyUsernameFavoritesSet(String username, List<String> newPositions) {
+    public SiteUser modifyUsernameFavoritesList(String username, List<String> newPositions) {
 
         return siteUserRepository.findById(username).map(
                 user -> {
@@ -77,10 +77,10 @@ public class SiteUserService {
         ).orElseThrow(() -> new UserException("Username exists not!"));
     }
 
-    public SiteUser saveFormulaToFavoritesSet(String username, String formulaName) {
+    public SiteUser saveFormulaToFavoritesList(String username, String formulaName) {
 
         //if SiteUser has no favorites create List and add formula
-        if(siteUserRepository.findById(username).get().getFavoritesList() == null |
+        if(siteUserRepository.findById(username).get().getFavoritesList() == null ||
         siteUserRepository.findById(username).get().getFavoritesList().size() == 0) {
             return siteUserRepository.findById(username).map(
                     user -> {
