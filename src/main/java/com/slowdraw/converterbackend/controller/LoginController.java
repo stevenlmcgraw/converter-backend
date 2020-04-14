@@ -25,17 +25,17 @@ import java.util.Collections;
 @RequestMapping("/auth")
 public class LoginController {
 
-    private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
 
-    private SiteUserService siteUserService;
+    private final SiteUserService siteUserService;
 
-    private SiteUserRepository siteUserRepository;
+    private final SiteUserRepository siteUserRepository;
 
-    private RoleRepository roleRepository;
+    private final RoleRepository roleRepository;
 
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-    private JwtTokenProvider jwtTokenProvider;
+    private final JwtTokenProvider jwtTokenProvider;
 
     public LoginController(AuthenticationManager authenticationManager,
                            SiteUserService siteUserService,

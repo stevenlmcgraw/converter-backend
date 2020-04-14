@@ -15,8 +15,8 @@ import java.util.stream.Collectors;
 @CrossOrigin
 public class FormulaController {
 
-    private FormulaService formulaService;
-    private FormulaEntityModelAssembler formulaEntityModelAssembler;
+    private final FormulaService formulaService;
+    private final FormulaEntityModelAssembler formulaEntityModelAssembler;
 
     //constructor injection
     public FormulaController(FormulaService formulaService, FormulaEntityModelAssembler formulaEntityModelAssembler) {

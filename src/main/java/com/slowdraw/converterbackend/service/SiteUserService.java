@@ -24,8 +24,8 @@ public class SiteUserService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SiteUserService.class);
 
-    private SiteUserRepository siteUserRepository;
-    private FormulaService formulaService;
+    private final SiteUserRepository siteUserRepository;
+    private final FormulaService formulaService;
 
     public SiteUserService(SiteUserRepository siteUserRepository, FormulaService formulaService) {
         this.siteUserRepository = siteUserRepository;

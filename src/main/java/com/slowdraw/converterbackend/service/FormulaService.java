@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 @Service
 public class FormulaService {
 
-    private FormulasRepository formulasRepository;
+    private final FormulasRepository formulasRepository;
 
     //constructor injection
     public FormulaService(@Lazy FormulasRepository formulasRepository) {

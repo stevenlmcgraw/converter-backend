@@ -23,8 +23,8 @@ import java.util.stream.Collectors;
 @CrossOrigin
 public class ResultHistoryController {
 
-    private ResultHistoryService resultHistoryService;
-    private ResultHistoryEntityModelAssembler resultHistoryEntityModelAssembler;
+    private final ResultHistoryService resultHistoryService;
+    private final ResultHistoryEntityModelAssembler resultHistoryEntityModelAssembler;
 
     public ResultHistoryController(ResultHistoryService resultHistoryService,
                                    ResultHistoryEntityModelAssembler resultHistoryEntityModelAssembler) {

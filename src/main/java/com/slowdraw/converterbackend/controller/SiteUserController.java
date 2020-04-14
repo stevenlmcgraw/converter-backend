@@ -22,8 +22,8 @@ public class SiteUserController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SiteUserController.class);
 
-    private SiteUserService siteUserService;
-    private SiteUserEntityModelAssembler siteUserEntityModelAssembler;
+    private final SiteUserService siteUserService;
+    private final SiteUserEntityModelAssembler siteUserEntityModelAssembler;
 
     //constructor injection
     public SiteUserController(SiteUserService siteUserService,

@@ -16,7 +16,7 @@ import java.util.List;
 @Service
 public class ResultHistoryService {
 
-    private ResultHistoryRepository resultHistoryRepository;
+    private final ResultHistoryRepository resultHistoryRepository;
 
     public ResultHistoryService(ResultHistoryRepository resultHistoryRepository) {
         this.resultHistoryRepository = resultHistoryRepository;
