@@ -60,6 +60,7 @@ public class SiteUserServiceTests {
                 .thenReturn(Optional.ofNullable(testUser));
         SiteUser newUser = siteUserService.findUserById("testUsername");
         assertThat(newUser).isNotNull();
+        LOGGER.info(newUser.toString());
     }
 
     @Test

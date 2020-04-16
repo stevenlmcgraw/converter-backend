@@ -43,7 +43,7 @@ public class SiteUserController {
     public EntityModel<?> getSiteUserProfile(@PathVariable(value = "username") String username) {
 
         if(siteUserService.findUserById(username) == null) {
-            throw new UserException("Username does not exist. Sorry.");
+            throw new UserException("Username not found.");
         }
 
         return new EntityModel<>(siteUserEntityModelAssembler
