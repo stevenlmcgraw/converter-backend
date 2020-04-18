@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 @Service
 public class FormulaService {
 
+    private final String FORMULA_NOT_FOUND = "Formula not found.";
+
     private final FormulasRepository formulasRepository;
 
     //constructor injection
@@ -28,7 +30,7 @@ public class FormulaService {
 
         return formulasRepository.findById(name)
                 .orElseThrow(() ->
-                        new FormulaException("No formula by that name exists around he-yump."));
+                        new FormulaException(FORMULA_NOT_FOUND));
     }
 
     public Boolean formulaExists(String name) {

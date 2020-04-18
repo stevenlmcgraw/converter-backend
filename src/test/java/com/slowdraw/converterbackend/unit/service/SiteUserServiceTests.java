@@ -1,6 +1,5 @@
-package com.slowdraw.converterbackend.slices.service;
+package com.slowdraw.converterbackend.unit.service;
 
-import com.slowdraw.converterbackend.controller.SiteUserController;
 import com.slowdraw.converterbackend.domain.Formula;
 import com.slowdraw.converterbackend.domain.Role;
 import com.slowdraw.converterbackend.domain.SiteUser;
@@ -9,7 +8,6 @@ import com.slowdraw.converterbackend.repository.SiteUserRepository;
 import com.slowdraw.converterbackend.service.FormulaService;
 import com.slowdraw.converterbackend.service.SiteUserService;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;

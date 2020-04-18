@@ -24,6 +24,8 @@ public class SiteUserService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SiteUserService.class);
 
+    private final String USERNAME_NOT_FOUND = "Username not found.";
+
     private final SiteUserRepository siteUserRepository;
     private final FormulaService formulaService;
 
@@ -38,17 +40,26 @@ public class SiteUserService {
 
     public SiteUser findUserById(String username) {
 
+        //sanity check: username exists
+        if(!siteUserRepository.findById(username).isPresent())
+            throw new UserException(USERNAME_NOT_FOUND);
+
         return siteUserRepository.findById(username)
                 .orElseThrow(() ->
-                        new UserException("Username not found."));
+                        new UserException(USERNAME_NOT_FOUND));
     }
 
     public SiteUser updateUserPassword(String username, String newPassword) {
+
+        //sanity check: username exists
+        if(!siteUserRepository.findById(username).isPresent())
+            throw new UserException(USERNAME_NOT_FOUND);
+
         return siteUserRepository.findById(username).map(
                 user -> {
                     user.setPassword(newPassword);
                     return siteUserRepository.save(user);
-                }).orElseThrow(() -> new UserException("Username not found.")
+                }).orElseThrow(() -> new UserException(USERNAME_NOT_FOUND)
         );
     }
 
@@ -58,14 +69,22 @@ public class SiteUserService {
 
     public List<Formula> getUsernameFavoritesSet(String username) {
 
+        //sanity check: username exists
+        if(!siteUserRepository.findById(username).isPresent())
+            throw new UserException(USERNAME_NOT_FOUND);
+
         SiteUser siteUser = siteUserRepository.findById(username)
                 .orElseThrow(() ->
-                        new UserException("Username ain't a valid username, bud."));
+                        new UserException(USERNAME_NOT_FOUND));
 
         return siteUser.getFavoritesList();
     }
 
     public SiteUser modifyUsernameFavoritesList(String username, List<String> newPositions) {
+
+        //sanity check: username exists
+        if(!siteUserRepository.findById(username).isPresent())
+            throw new UserException(USERNAME_NOT_FOUND);
 
         return siteUserRepository.findById(username).map(
                 user -> {
@@ -74,10 +93,14 @@ public class SiteUserService {
                     ).collect(Collectors.toList()));
                     return siteUserRepository.save(user);
                 }
-        ).orElseThrow(() -> new UserException("Username exists not!"));
+        ).orElseThrow(() -> new UserException(USERNAME_NOT_FOUND));
     }
 
     public SiteUser saveFormulaToFavoritesList(String username, String formulaName) {
+
+        //sanity check: username exists
+        if(!siteUserRepository.findById(username).isPresent())
+            throw new UserException(USERNAME_NOT_FOUND);
 
         //if SiteUser has no favorites create List and add formula
         if(siteUserRepository.findById(username).get().getFavoritesList() == null ||
@@ -90,7 +113,7 @@ public class SiteUserService {
 
                         return siteUserRepository.save(user);
                     }).orElseThrow(() ->
-                            new UserException("I'm sorry, but that username does not exist."));
+                            new UserException(USERNAME_NOT_FOUND));
         }
 
         //make sure there are no duplicates in favorites list
@@ -101,7 +124,7 @@ public class SiteUserService {
                 .collect(Collectors.toList()).isEmpty()) {
 
             return siteUserRepository.save(siteUserRepository.findById(username)
-                    .orElseThrow(() -> new UserException("Username not found.")));
+                    .orElseThrow(() -> new UserException(USERNAME_NOT_FOUND)));
         }
 
         //add to favorites list
@@ -112,20 +135,28 @@ public class SiteUserService {
 
                     return siteUserRepository.save(user);
                 }
-        ).orElseThrow(() -> new UserException("Username not found, partner."));
+        ).orElseThrow(() -> new UserException(USERNAME_NOT_FOUND));
     }
 
     public SiteUser deleteAllFavorites(String username) {
+
+        //sanity check: username exists
+        if(!siteUserRepository.findById(username).isPresent())
+            throw new UserException(USERNAME_NOT_FOUND);
 
         return siteUserRepository.findById(username).map(
                 user -> {
                     user.setFavoritesList(Collections.emptyList());
                     return siteUserRepository.save(user);
                 }
-        ).orElseThrow(() -> new UserException("Username does not exist, dude."));
+        ).orElseThrow(() -> new UserException(USERNAME_NOT_FOUND));
     }
 
     public SiteUser deleteSingleFormulaFromFavorite(String username, String formulaName) {
+
+        //sanity check: username exists
+        if(!siteUserRepository.findById(username).isPresent())
+            throw new UserException(USERNAME_NOT_FOUND);
 
         return siteUserRepository.findById(username).map(
                 user -> {
@@ -136,7 +167,7 @@ public class SiteUserService {
 
                     return siteUserRepository.save(user);
                 }
-        ).orElseThrow(() -> new UserException("Username not found."));
+        ).orElseThrow(() -> new UserException(USERNAME_NOT_FOUND));
     }
 
     public Boolean checkUsernameAvailability(String username) {

@@ -2,6 +2,8 @@ package com.slowdraw.converterbackend.assembler;
 
 import com.slowdraw.converterbackend.controller.SiteUserController;
 import com.slowdraw.converterbackend.domain.SiteUser;
+import com.slowdraw.converterbackend.exception.UserException;
+import com.slowdraw.converterbackend.repository.SiteUserRepository;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
@@ -16,8 +18,20 @@ public class SiteUserEntityModelAssembler
 
     private static final String API_BASE_URL = "http://localhost:9191";
 
+    private final String USERNAME_NOT_FOUND = "Username not found.";
+
+    private final SiteUserRepository siteUserRepository;
+
+    public SiteUserEntityModelAssembler(SiteUserRepository siteUserRepository) {
+        this.siteUserRepository = siteUserRepository;
+    }
+
     @Override
     public EntityModel<SiteUser> toModel(SiteUser entity) {
+
+        //sanity check: received valid entity
+        if(entity == null)
+            throw new UserException(USERNAME_NOT_FOUND);
 
         return new EntityModel<>(entity,
                 linkTo(methodOn(SiteUserController.class).getSiteUserProfile(entity.getUsername()))

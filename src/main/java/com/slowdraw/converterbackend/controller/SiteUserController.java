@@ -55,8 +55,7 @@ public class SiteUserController {
         @PathVariable(value = "formulaName") String formulaName) {
 
         return new EntityModel<>(siteUserEntityModelAssembler
-                .toModel(siteUserService.saveFormulaToFavoritesList(username, formulaName))
-                );
+                .toModel(siteUserService.saveFormulaToFavoritesList(username, formulaName)));
     }
 
     @PutMapping("/{username}/favorites/reorder")
