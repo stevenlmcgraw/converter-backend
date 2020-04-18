@@ -4,9 +4,12 @@ import com.slowdraw.converterbackend.controller.FormulaController;
 import com.slowdraw.converterbackend.controller.SiteUserController;
 import com.slowdraw.converterbackend.domain.Formula;
 import com.slowdraw.converterbackend.exception.FormulaException;
+import com.slowdraw.converterbackend.exception.FormulaNotFoundResponse;
 import com.slowdraw.converterbackend.exception.UserException;
 import com.slowdraw.converterbackend.repository.FormulasRepository;
 import com.slowdraw.converterbackend.repository.SiteUserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
@@ -19,6 +22,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class FormulaEntityModelAssembler
         implements RepresentationModelAssembler<Formula, EntityModel<Formula>> {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(FormulaEntityModelAssembler.class);
+
     private final String FORMULA_NOT_FOUND = "Formula not found.";
 
     private final FormulasRepository formulasRepository;
@@ -29,6 +34,8 @@ public class FormulaEntityModelAssembler
 
     @Override
     public EntityModel<Formula> toModel(Formula entity) {
+
+        LOGGER.info("Hit formula entity assembler toModel");
 
         //sanity check: received valid entity
         if(entity == null)

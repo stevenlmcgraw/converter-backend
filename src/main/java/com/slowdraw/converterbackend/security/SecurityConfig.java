@@ -81,7 +81,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .antMatchers("/auth/**")
                 .permitAll()
-                .antMatchers("/formulas")
+                .antMatchers("/formulas/**")
                 .permitAll()
                 .anyRequest().authenticated();
 

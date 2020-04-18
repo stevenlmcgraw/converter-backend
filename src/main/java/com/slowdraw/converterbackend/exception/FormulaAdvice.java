@@ -1,5 +1,7 @@
 package com.slowdraw.converterbackend.exception;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -16,6 +18,6 @@ public class FormulaAdvice {
 
         FormulaNotFoundResponse response = new FormulaNotFoundResponse(exceptMe.getMessage());
 
-        return new ResponseEntity<>(response, HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 }

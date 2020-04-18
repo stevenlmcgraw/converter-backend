@@ -2,7 +2,12 @@ package com.slowdraw.converterbackend.service;
 
 import com.slowdraw.converterbackend.domain.Formula;
 import com.slowdraw.converterbackend.exception.FormulaException;
+import com.slowdraw.converterbackend.exception.FormulaNotFoundResponse;
+import com.slowdraw.converterbackend.exception.UserException;
 import com.slowdraw.converterbackend.repository.FormulasRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.logging.LoggerGroup;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +16,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class FormulaService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FormulaService.class);
 
     private final String FORMULA_NOT_FOUND = "Formula not found.";
 
@@ -27,6 +34,11 @@ public class FormulaService {
     }
 
     public Formula getSingleFormulaInfo(String name) {
+
+        //sanity check: formula exists
+        if(!formulasRepository.findById(name).isPresent())
+
+            throw new FormulaException(FORMULA_NOT_FOUND);
 
         return formulasRepository.findById(name)
                 .orElseThrow(() ->

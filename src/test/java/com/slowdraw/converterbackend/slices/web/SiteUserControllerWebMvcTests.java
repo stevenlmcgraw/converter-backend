@@ -172,6 +172,7 @@ public class SiteUserControllerWebMvcTests {
 
         mockMvc.perform(get("/user/{username}", "unknown")
                 .requestAttr("username", "unknown"))
+                .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("userNotFound", is(USERNAME_NOT_FOUND)));
     }
@@ -207,6 +208,7 @@ public class SiteUserControllerWebMvcTests {
                 "unknown", "mhzToMeters")
                 .requestAttr("username", "unknown")
                 .requestAttr("formulaName", "mhzToMeters"))
+                .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("userNotFound", is(USERNAME_NOT_FOUND)));
     }
@@ -247,6 +249,7 @@ public class SiteUserControllerWebMvcTests {
         mockMvc.perform(post("/user/{username}/favorites/reorder",testUser.getUsername())
                 .content(newOrderJson).contentType(MediaType.APPLICATION_JSON)
                 .requestAttr("username", testUser.getUsername()))
+                .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("userNotFound", is(USERNAME_NOT_FOUND)));
     }
