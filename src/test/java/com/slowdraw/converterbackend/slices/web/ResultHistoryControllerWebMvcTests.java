@@ -1,5 +1,6 @@
 package com.slowdraw.converterbackend.slices.web;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.slowdraw.converterbackend.assembler.ResultHistoryEntityModelAssembler;
 import com.slowdraw.converterbackend.controller.ResultHistoryController;
 import com.slowdraw.converterbackend.domain.Formula;
@@ -11,6 +12,7 @@ import com.slowdraw.converterbackend.security.JwtAuthenticationEntryPoint;
 import com.slowdraw.converterbackend.security.JwtAuthenticationFilter;
 import com.slowdraw.converterbackend.security.JwtTokenProvider;
 import com.slowdraw.converterbackend.service.ResultHistoryService;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -26,6 +28,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,10 +36,12 @@ import org.springframework.test.web.servlet.result.JsonPathResultMatchers;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -50,7 +55,8 @@ public class ResultHistoryControllerWebMvcTests {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ResultHistoryControllerWebMvcTests.class);
 
-    //private final String RESULT_HISTORY_NOT_FOUND = "Formula not found.";
+    private final String USERNAME_HAS_NO_RESULT_HISTORY = "No calculation/conversion result history for user.";
+    private  String RESULT_HISTORY_NOT_FOUND = "Given result not found.";;
 
     @MockBean
     private ResultHistoryService resultHistoryService;
@@ -76,6 +82,11 @@ public class ResultHistoryControllerWebMvcTests {
     private SiteUser testUser;
 
     private List<ResultHistory> testResultHistoryList;
+    private List<String> selfLinksList;
+    private List<String> getAllResultsMatchList;
+    private List<String> deleteSingleLinksList;
+    private List<String> deleteAllResultsMatchList;
+    private List<Boolean> deleteAllPathToKeyTemplated;
 
     @BeforeAll
     void initTests() {
@@ -171,6 +182,45 @@ public class ResultHistoryControllerWebMvcTests {
         testResultHistoryList.add(result2);
         testResultHistoryList.add(result3);
 
+        //this is all for validating the links returned
+        String selfLinkString = "http://localhost/resultHistory/%s/%s";
+        String allResultsString = "http://localhost/resultHistory/%s";
+        String deleteSingleResult = "http://localhost/resultHistory/delete/%s/%s";
+        String deleteAllResultsString = "http://localhost/resultHistory/delete/{username}";
+
+        List<String> resultIdArray = mongoOperations.findAll(ResultHistory.class).stream()
+                .map(ResultHistory::getId).collect(Collectors.toList());
+
+        selfLinksList = resultIdArray.stream()
+                .map(element -> {
+                    String mutate = String.format(selfLinkString, testUser.getUsername(), element);
+                    return mutate;
+                })
+                .collect(Collectors.toList());
+
+        getAllResultsMatchList = Stream.generate(String::new)
+                .limit(testResultHistoryList.size())
+                .map(element ->
+                        String.format(allResultsString, testUser.getUsername()))
+                .collect(Collectors.toList());
+
+        deleteSingleLinksList = resultIdArray.stream()
+                .map(element -> {
+                    String mutate = String.format(deleteSingleResult, testUser.getUsername(), element);
+                    return mutate;
+                })
+                .collect(Collectors.toList());
+
+        deleteAllResultsMatchList = Stream.generate(String::new)
+                .limit(testResultHistoryList.size())
+                .map(element ->
+                        String.format(deleteAllResultsString))
+                .collect(Collectors.toList());
+
+        deleteAllPathToKeyTemplated = Stream.generate(() -> Boolean.TRUE)
+                .limit(testResultHistoryList.size())
+                .collect(Collectors.toList());
+
         LOGGER.info(mongoOperations.findAll(ResultHistory.class).stream().map(ResultHistory::getEntryDate).toString());
     }
 
@@ -182,7 +232,7 @@ public class ResultHistoryControllerWebMvcTests {
                 .willReturn(testResultHistoryList.stream().collect(Collectors.toList()));
 
         mockMvc.perform(get("/resultHistory/{username}", testUser.getUsername())
-                .requestAttr("username", testUser.getUsername())
+                //.requestAttr("username", testUser.getUsername())
                 .accept(MediaTypes.HAL_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -207,6 +257,116 @@ public class ResultHistoryControllerWebMvcTests {
                 .andExpect(jsonPath("$._embedded.resultHistories[*].calculationAttributes",
                         containsInAnyOrder(testResultHistoryList.stream()
                                 .map(ResultHistory::getCalculationAttributes).toArray())))
+                .andExpect(jsonPath("$.._links.self.href",
+                        containsInAnyOrder(selfLinksList.toArray())))
+                .andExpect(jsonPath("$.._links.getAllUsernameResultHistory.href",
+                        containsInAnyOrder(getAllResultsMatchList.toArray())))
+                .andExpect(jsonPath("$.._links.deleteSpecificResultHistory.href",
+                        containsInAnyOrder(deleteSingleLinksList.toArray())))
+                .andExpect(jsonPath("$.._links.deleteAllUsernameResultHistory.href",
+                        containsInAnyOrder(deleteAllResultsMatchList.toArray())))
+                .andExpect(jsonPath("$.._links.deleteAllUsernameResultHistory.templated",
+                        containsInAnyOrder(deleteAllPathToKeyTemplated.toArray())))
+                .andReturn();
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    public void testGetUsernameResultHistoryThrowsNoResultResponseWhenNoResultHistoryPresent()
+            throws Exception {
+
+        Role userRole = new Role();
+        userRole.setUsername("testUsername");
+        userRole.setRoleName("ROLE_USER");
+
+        Set<Role> roles = new HashSet<Role>();
+
+        SiteUser testUser1  = SiteUser.builder()
+                .username("testUsername2")
+                .password("testPassword2")
+                .email("test2@email.com")
+                .favoritesList(new ArrayList<>())
+                .roles(roles)
+                .build();
+
+        mockMvc.perform(get("/resultHistory/{username}", testUser1.getUsername()))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("resultHistoryNotFound", is(USERNAME_HAS_NO_RESULT_HISTORY)));
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    public void testGetSpecificResultHistoryInstanceWorks() throws Exception {
+
+        List<ResultHistory> resultHistoryList = mongoOperations.findAll(ResultHistory.class);
+
+        ResultHistory testResultHistory1 = resultHistoryList.get(0);
+
+        given(resultHistoryService.findById(testResultHistory1.getId())).willReturn(testResultHistory1);
+
+        mockMvc.perform(get("/resultHistory/{username}/{id}",
+                testUser.getUsername(), testResultHistory1.getId()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
+                .andExpect(jsonPath("id", is(testResultHistory1.getId())))
+                .andExpect(jsonPath("username", is(testUser.getUsername())))
+                .andExpect(jsonPath("title", is(testResultHistory1.getTitle())))
+                .andExpect(jsonPath("message", is(testResultHistory1.getMessage())))
+                //.andExpect(jsonPath("entryDate", is(testResultHistory1.getEntryDate())))
+                .andExpect(jsonPath("calculationAttributes",
+                        aMapWithSize(testResultHistory1.getCalculationAttributes().size())))
+                .andExpect(jsonPath("calculationAttributes[*]",
+                        containsInAnyOrder(testResultHistory1.getCalculationAttributes().values().toArray())))
+                .andExpect(jsonPath("_links.self.href",
+                        is("http://localhost/resultHistory/" + testUser.getUsername() +
+                                "/" + testResultHistory1.getId())))
+                .andExpect(jsonPath("_links.getAllUsernameResultHistory.href",
+                        is("http://localhost/resultHistory/" + testUser.getUsername())))
+                .andExpect(jsonPath("_links.deleteSpecificResultHistory.href",
+                        is("http://localhost/resultHistory/delete/" + testUser.getUsername() +
+                                "/" + testResultHistory1.getId())))
+                .andExpect(jsonPath("_links.deleteAllUsernameResultHistory.href",
+                        is("http://localhost/resultHistory/delete/{username}")))
+                .andExpect(jsonPath("_links.deleteAllUsernameResultHistory.templated",
+                        is(true)))
+                .andReturn();
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    public void testGetSingleResultHistoryThrowsNotFoundResponseWhenDoesNotExist() throws Exception {
+
+        mockMvc.perform(get("/resultHistory/{username}/{id}", testUser.getUsername(), "bogus"))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("resultHistoryNotFound",
+                        is(RESULT_HISTORY_NOT_FOUND)));
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    public void testSaveNewResultHistoryWorksProperly() throws Exception {
+
+        List<ResultHistory> resultHistoryList = mongoOperations.findAll(ResultHistory.class);
+
+        ResultHistory testResultHistory2 = resultHistoryList.get(0);
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        String resultJson = mapper.writeValueAsString(testResultHistory2);
+
+        LOGGER.info(resultJson);
+
+        given(resultHistoryService.persistResultHistory(testResultHistory2)).willReturn(testResultHistory2);
+
+        mockMvc.perform(post("/resultHistory")
+                .content(resultJson).contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaTypes.HAL_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
                 .andReturn();
     }
 }
