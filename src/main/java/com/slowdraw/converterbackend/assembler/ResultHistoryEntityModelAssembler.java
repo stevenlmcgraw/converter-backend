@@ -4,8 +4,10 @@ import com.slowdraw.converterbackend.controller.ResultHistoryController;
 import com.slowdraw.converterbackend.domain.ResultHistory;
 import com.slowdraw.converterbackend.exception.ResultHistoryException;
 import com.slowdraw.converterbackend.exception.UserException;
+import com.slowdraw.converterbackend.security.UserPrincipal;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Component;
 
@@ -32,11 +34,13 @@ public class ResultHistoryEntityModelAssembler
                 linkTo(methodOn(ResultHistoryController.class)
                         .getUsernameResultHistory(entity.getUsername()))
                         .withRel("getAllUsernameResultHistory"),
+                new Link("http://localhost/resultHistory")
+                        .withRel("saveSingleResultHistory"),
                 linkTo(methodOn(ResultHistoryController.class)
                         .deleteSingleResultHistory(entity.getUsername(), entity.getId()))
                         .withRel("deleteSpecificResultHistory"),
                 linkTo(methodOn(ResultHistoryController.class)
-                        .deleteUsernameResultHistory(null))
+                        .deleteUsernameResultHistory(entity.getUsername()))
                         .withRel("deleteAllUsernameResultHistory")
         );
     }

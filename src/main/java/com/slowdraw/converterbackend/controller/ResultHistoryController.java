@@ -1,5 +1,6 @@
 package com.slowdraw.converterbackend.controller;
 
+import com.slowdraw.converterbackend.assembler.ResultHistoryAssembleLinksForDeleteMethods;
 import com.slowdraw.converterbackend.assembler.ResultHistoryEntityModelAssembler;
 import com.slowdraw.converterbackend.domain.ResultHistory;
 import com.slowdraw.converterbackend.exception.ResultHistoryException;
@@ -16,6 +17,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
@@ -25,11 +27,14 @@ public class ResultHistoryController {
 
     private final ResultHistoryService resultHistoryService;
     private final ResultHistoryEntityModelAssembler resultHistoryEntityModelAssembler;
+    private final ResultHistoryAssembleLinksForDeleteMethods linksForDeleteMethods;
 
     public ResultHistoryController(ResultHistoryService resultHistoryService,
-                                   ResultHistoryEntityModelAssembler resultHistoryEntityModelAssembler) {
+                                   ResultHistoryEntityModelAssembler resultHistoryEntityModelAssembler,
+                                   ResultHistoryAssembleLinksForDeleteMethods linksForDeleteMethods) {
         this.resultHistoryService = resultHistoryService;
         this.resultHistoryEntityModelAssembler = resultHistoryEntityModelAssembler;
+        this.linksForDeleteMethods = linksForDeleteMethods;
     }
 
     @GetMapping("/{username}/{id}")
@@ -59,8 +64,7 @@ public class ResultHistoryController {
             return resultHistoryService.errorMap(bindingResult);
 
         return new EntityModel<>(resultHistoryEntityModelAssembler
-                .toModel(resultHistoryService.persistResultHistory(resultHistory)),
-                new Link("http://localhost:9191/resultHistory").withRel("saveSingleResultHistory"));
+                .toModel(resultHistoryService.persistResultHistory(resultHistory)));
     }
 
     @PutMapping("/{username}/{id}")
@@ -82,7 +86,9 @@ public class ResultHistoryController {
 
         resultHistoryService.deleteSingleResultHistory(id);
 
-        return new ResponseEntity<String>("Results from conversion/calculation deleted.", HttpStatus.OK);
+        return new ResponseEntity<>(linksForDeleteMethods
+                .getBody(username, id),
+                HttpStatus.OK);
     }
 
     @DeleteMapping("/delete/{username}")
@@ -90,6 +96,8 @@ public class ResultHistoryController {
 
         resultHistoryService.deleteUsernameAllResultHistory(username);
 
-        return new ResponseEntity<String>("All conversion/calculation history deleted.", HttpStatus.OK);
+        return new ResponseEntity<>(linksForDeleteMethods
+                .getBody(username),
+                HttpStatus.OK);
     }
 }

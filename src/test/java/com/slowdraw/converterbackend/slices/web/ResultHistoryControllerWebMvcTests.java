@@ -1,6 +1,7 @@
 package com.slowdraw.converterbackend.slices.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.slowdraw.converterbackend.assembler.ResultHistoryAssembleLinksForDeleteMethods;
 import com.slowdraw.converterbackend.assembler.ResultHistoryEntityModelAssembler;
 import com.slowdraw.converterbackend.controller.ResultHistoryController;
 import com.slowdraw.converterbackend.domain.Formula;
@@ -40,8 +41,9 @@ import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.mockito.BDDMockito.willDoNothing;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -79,11 +81,15 @@ public class ResultHistoryControllerWebMvcTests {
     @Autowired
     private MongoOperations mongoOperations;
 
+    @MockBean
+    private ResultHistoryAssembleLinksForDeleteMethods linksForDeleteMethods;
+
     private SiteUser testUser;
 
     private List<ResultHistory> testResultHistoryList;
     private List<String> selfLinksList;
     private List<String> getAllResultsMatchList;
+    private List<String> saveResultLinkList;
     private List<String> deleteSingleLinksList;
     private List<String> deleteAllResultsMatchList;
     private List<Boolean> deleteAllPathToKeyTemplated;
@@ -185,8 +191,9 @@ public class ResultHistoryControllerWebMvcTests {
         //this is all for validating the links returned
         String selfLinkString = "http://localhost/resultHistory/%s/%s";
         String allResultsString = "http://localhost/resultHistory/%s";
+        String saveResultString = "http://localhost/resultHistory";
         String deleteSingleResult = "http://localhost/resultHistory/delete/%s/%s";
-        String deleteAllResultsString = "http://localhost/resultHistory/delete/{username}";
+        String deleteAllResultsString = "http://localhost/resultHistory/delete/%s";
 
         List<String> resultIdArray = mongoOperations.findAll(ResultHistory.class).stream()
                 .map(ResultHistory::getId).collect(Collectors.toList());
@@ -204,6 +211,11 @@ public class ResultHistoryControllerWebMvcTests {
                         String.format(allResultsString, testUser.getUsername()))
                 .collect(Collectors.toList());
 
+        saveResultLinkList = Stream.generate(String::new)
+                .limit(testResultHistoryList.size())
+                .map(element -> saveResultString)
+                .collect(Collectors.toList());
+
         deleteSingleLinksList = resultIdArray.stream()
                 .map(element -> {
                     String mutate = String.format(deleteSingleResult, testUser.getUsername(), element);
@@ -214,11 +226,7 @@ public class ResultHistoryControllerWebMvcTests {
         deleteAllResultsMatchList = Stream.generate(String::new)
                 .limit(testResultHistoryList.size())
                 .map(element ->
-                        String.format(deleteAllResultsString))
-                .collect(Collectors.toList());
-
-        deleteAllPathToKeyTemplated = Stream.generate(() -> Boolean.TRUE)
-                .limit(testResultHistoryList.size())
+                        String.format(deleteAllResultsString, testUser.getUsername()))
                 .collect(Collectors.toList());
 
         LOGGER.info(mongoOperations.findAll(ResultHistory.class).stream().map(ResultHistory::getEntryDate).toString());
@@ -261,12 +269,12 @@ public class ResultHistoryControllerWebMvcTests {
                         containsInAnyOrder(selfLinksList.toArray())))
                 .andExpect(jsonPath("$.._links.getAllUsernameResultHistory.href",
                         containsInAnyOrder(getAllResultsMatchList.toArray())))
+                .andExpect(jsonPath("$.._links.saveSingleResultHistory.href",
+                        containsInAnyOrder(saveResultLinkList.toArray())))
                 .andExpect(jsonPath("$.._links.deleteSpecificResultHistory.href",
                         containsInAnyOrder(deleteSingleLinksList.toArray())))
                 .andExpect(jsonPath("$.._links.deleteAllUsernameResultHistory.href",
                         containsInAnyOrder(deleteAllResultsMatchList.toArray())))
-                .andExpect(jsonPath("$.._links.deleteAllUsernameResultHistory.templated",
-                        containsInAnyOrder(deleteAllPathToKeyTemplated.toArray())))
                 .andReturn();
     }
 
@@ -328,9 +336,7 @@ public class ResultHistoryControllerWebMvcTests {
                         is("http://localhost/resultHistory/delete/" + testUser.getUsername() +
                                 "/" + testResultHistory1.getId())))
                 .andExpect(jsonPath("_links.deleteAllUsernameResultHistory.href",
-                        is("http://localhost/resultHistory/delete/{username}")))
-                .andExpect(jsonPath("_links.deleteAllUsernameResultHistory.templated",
-                        is(true)))
+                        is("http://localhost/resultHistory/delete/" + testUser.getUsername())))
                 .andReturn();
     }
 
@@ -367,6 +373,61 @@ public class ResultHistoryControllerWebMvcTests {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
+                .andExpect(jsonPath("id",
+                        is(testResultHistory2.getId())))
+                .andExpect(jsonPath("username",
+                        is(testResultHistory2.getUsername())))
+                .andExpect(jsonPath("title",
+                        is(testResultHistory2.getTitle())))
+                .andExpect(jsonPath("message",
+                        is(testResultHistory2.getMessage())))
+              //.andExpect(jsonPath("entryDate", is(testResultHistory1.getEntryDate())))
+                .andExpect(jsonPath("calculationAttributes",
+                        aMapWithSize(testResultHistory2.getCalculationAttributes().size())))
+                .andExpect(jsonPath("calculationAttributes[*]",
+                        containsInAnyOrder(testResultHistory2.getCalculationAttributes().values().toArray())))
+                .andExpect(jsonPath("_links.self.href",
+                        is("http://localhost/resultHistory/" + testUser.getUsername() +
+                                "/" + testResultHistory2.getId())))
+                .andExpect(jsonPath("_links.getAllUsernameResultHistory.href",
+                        is("http://localhost/resultHistory/" + testUser.getUsername())))
+                .andExpect(jsonPath("_links.deleteSpecificResultHistory.href",
+                        is("http://localhost/resultHistory/delete/" + testUser.getUsername() +
+                                "/" + testResultHistory2.getId())))
+                .andExpect(jsonPath("_links.deleteAllUsernameResultHistory.href",
+                        is("http://localhost/resultHistory/delete/" + testUser.getUsername())))
                 .andReturn();
     }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    public void testSaveResultHistoryGivesErrorMessageIfFailureOccurs() throws Exception {
+
+        mockMvc.perform(post("/resultHistory")
+                .content(String.valueOf(nullValue())).contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andReturn();
+    }
+
+//    @Test
+//    @WithMockUser(roles = "USER")
+//    public void testDeleteSingleResultHistoryWorksProperly() throws Exception {
+//
+//        List<ResultHistory> resultHistoryList = mongoOperations.findAll(ResultHistory.class);
+//
+//        ResultHistory testResultHistory3 = resultHistoryList.get(0);
+//
+//        mockMvc.perform(delete("/resultHistory/delete/" +
+//                testUser.getUsername() + "/" + testResultHistory3.getId(),
+//                testUser.getUsername(), testResultHistory3.getId()))
+//                .andDo(print())
+//                .andExpect(status().isOk())
+//                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
+//                .andExpect(jsonPath("$.message",
+//                        is(String.format("Username %s ResultHistory ID %s deleted.",
+//                                testUser.getUsername(), testResultHistory3.getId()))))
+//                .andExpect(jsonPath("$._links", con))
+//
+//    }
 }
