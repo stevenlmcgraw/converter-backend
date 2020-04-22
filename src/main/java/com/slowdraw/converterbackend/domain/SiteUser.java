@@ -26,6 +26,7 @@ public class SiteUser {
     private String email;
 
     @DBRef
+    @Builder.Default
     private List<Formula> favoritesList = new ArrayList<>();
 
     @DBRef

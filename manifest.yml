@@ -1,0 +1,14 @@
+applications:
+  - name: super-calculator-backend
+    disk_quota: 1G
+    instances: 1
+    memory: 1G
+    path: build/libs/super-calculator-backend.jar
+    timeout: 120
+    routes:
+      - route: saturn-hotdog-super-calculator-backend.cfapps.io
+    buildpacks:
+      - https://github.com/cloudfoundry/java-buildpack.git
+    stack: cflinuxfs3
+    services:
+      - mongo-hotdog
