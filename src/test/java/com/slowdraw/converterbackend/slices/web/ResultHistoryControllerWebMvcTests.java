@@ -410,24 +410,5 @@ public class ResultHistoryControllerWebMvcTests {
                 .andReturn();
     }
 
-//    @Test
-//    @WithMockUser(roles = "USER")
-//    public void testDeleteSingleResultHistoryWorksProperly() throws Exception {
-//
-//        List<ResultHistory> resultHistoryList = mongoOperations.findAll(ResultHistory.class);
-//
-//        ResultHistory testResultHistory3 = resultHistoryList.get(0);
-//
-//        mockMvc.perform(delete("/resultHistory/delete/" +
-//                testUser.getUsername() + "/" + testResultHistory3.getId(),
-//                testUser.getUsername(), testResultHistory3.getId()))
-//                .andDo(print())
-//                .andExpect(status().isOk())
-//                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
-//                .andExpect(jsonPath("$.message",
-//                        is(String.format("Username %s ResultHistory ID %s deleted.",
-//                                testUser.getUsername(), testResultHistory3.getId()))))
-//                .andExpect(jsonPath("$._links", con))
-//
-//    }
+
 }

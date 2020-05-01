@@ -10,5 +10,3 @@ applications:
     buildpacks:
       - https://github.com/cloudfoundry/java-buildpack.git
     stack: cflinuxfs3
-    services:
-      - mongo-hotdog
