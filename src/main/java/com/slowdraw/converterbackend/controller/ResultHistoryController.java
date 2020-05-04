@@ -74,7 +74,7 @@ public class ResultHistoryController {
             return resultHistoryService.errorMap(bindingResult);
 
         return new EntityModel<>(resultHistoryEntityModelAssembler
-                .toModel(resultHistoryService.updateResultHistory(resultHistory, username, id)));
+                .toModel(resultHistoryService.updateResultHistory(resultHistory, id)));
     }
 
 
