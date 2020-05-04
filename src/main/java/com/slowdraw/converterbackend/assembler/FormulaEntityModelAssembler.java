@@ -3,7 +3,6 @@ package com.slowdraw.converterbackend.assembler;
 import com.slowdraw.converterbackend.controller.FormulaController;
 import com.slowdraw.converterbackend.domain.Formula;
 import com.slowdraw.converterbackend.exception.FormulaException;
-import com.slowdraw.converterbackend.repository.FormulasRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.hateoas.CollectionModel;
