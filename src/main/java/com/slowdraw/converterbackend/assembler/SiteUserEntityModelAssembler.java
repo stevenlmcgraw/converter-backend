@@ -16,15 +16,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class SiteUserEntityModelAssembler
         implements RepresentationModelAssembler<SiteUser, EntityModel<SiteUser>> {
 
-    private static final String API_BASE_URL = "http://localhost:9191";
-
     private final String USERNAME_NOT_FOUND = "Username not found.";
-
-    private final SiteUserRepository siteUserRepository;
-
-    public SiteUserEntityModelAssembler(SiteUserRepository siteUserRepository) {
-        this.siteUserRepository = siteUserRepository;
-    }
 
     @Override
     public EntityModel<SiteUser> toModel(SiteUser entity) {

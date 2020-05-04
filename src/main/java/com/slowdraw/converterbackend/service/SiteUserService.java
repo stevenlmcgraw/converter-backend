@@ -24,7 +24,7 @@ public class SiteUserService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SiteUserService.class);
 
-    private final String USERNAME_NOT_FOUND = "Username not found.";
+    private static final String USERNAME_NOT_FOUND = "Username not found.";
 
     private final SiteUserRepository siteUserRepository;
     private final FormulaService formulaService;

@@ -39,7 +39,7 @@ public class ResultHistoryService {
         return resultHistoryRepository.save(resultHistory);
     }
 
-    public ResultHistory updateResultHistory(ResultHistory resultHistory, String username, String id) {
+    public ResultHistory updateResultHistory(ResultHistory resultHistory, String id) {
 
         return resultHistoryRepository.findById(id).map(
                 result -> {
