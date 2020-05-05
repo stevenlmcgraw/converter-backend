@@ -3,6 +3,9 @@ package com.slowdraw.converterbackend.assembler;
 import com.slowdraw.converterbackend.controller.ResultHistoryController;
 import com.slowdraw.converterbackend.domain.ResultHistory;
 import com.slowdraw.converterbackend.exception.ResultHistoryException;
+import com.slowdraw.converterbackend.service.SiteUserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
@@ -15,6 +18,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Component
 public class ResultHistoryEntityModelAssembler
         implements RepresentationModelAssembler<ResultHistory, EntityModel<ResultHistory>> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResultHistoryEntityModelAssembler.class);
 
     private static final String RESULT_HISTORY_NOT_FOUND = "Given result not found.";
 

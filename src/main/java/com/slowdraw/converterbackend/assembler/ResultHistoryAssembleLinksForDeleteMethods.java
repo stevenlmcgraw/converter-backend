@@ -1,6 +1,8 @@
 package com.slowdraw.converterbackend.assembler;
 
 import org.springframework.hateoas.Link;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -62,7 +64,7 @@ public class ResultHistoryAssembleLinksForDeleteMethods {
         return map;
     }
 
-    public List<Object> getBody(String username, String id) {
+    public ResponseEntity<List<Object>> getBody(String username, String id) {
 
         bodyList.clear();
 
@@ -70,10 +72,10 @@ public class ResultHistoryAssembleLinksForDeleteMethods {
 
         bodyList.add(makeLinksList(username));
 
-        return bodyList;
+        return new ResponseEntity<>(bodyList, HttpStatus.OK);
     }
 
-    public List<Object> getBody(String username) {
+    public ResponseEntity<List<Object>> getBody(String username) {
 
         bodyList.clear();
 
@@ -81,6 +83,6 @@ public class ResultHistoryAssembleLinksForDeleteMethods {
 
         bodyList.add(makeLinksList(username));
 
-        return bodyList;
+        return new ResponseEntity<>(bodyList, HttpStatus.OK);
     }
 }

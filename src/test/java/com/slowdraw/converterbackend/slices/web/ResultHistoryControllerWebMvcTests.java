@@ -50,7 +50,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(controllers = ResultHistoryController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(ResultHistoryEntityModelAssembler.class)
+@Import({ResultHistoryEntityModelAssembler.class, ResultHistoryAssembleLinksForDeleteMethods.class})
 @AutoConfigureDataMongo
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ResultHistoryControllerWebMvcTests {
@@ -363,8 +363,6 @@ public class ResultHistoryControllerWebMvcTests {
 
         String resultJson = mapper.writeValueAsString(testResultHistory2);
 
-        LOGGER.info(resultJson);
-
         given(resultHistoryService.persistResultHistory(testResultHistory2)).willReturn(testResultHistory2);
 
         mockMvc.perform(post("/resultHistory")
@@ -408,7 +406,113 @@ public class ResultHistoryControllerWebMvcTests {
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andReturn();
+
+
     }
 
+    @Test
+    @WithMockUser(roles = "USER")
+    public void testUpdateSingleResultHistoryWorks() throws Exception {
 
+        List<ResultHistory> resultHistoryList = mongoOperations.findAll(ResultHistory.class);
+
+        ResultHistory testResult = resultHistoryList.get(0);
+
+        Map<String, Object> updatedResultMap = new HashMap<>();
+        updatedResultMap.put("a", 3001);
+        updatedResultMap.put("yb", 2053);
+        updatedResultMap.put("newResult", 71000);
+
+        testResult.setCalculationAttributes(updatedResultMap);
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        String calculationAttributesJson =
+                mapper.writeValueAsString(testResult);
+
+        given(resultHistoryService
+                .updateResultHistory(testResult, testResult.getId()))
+                .willReturn(testResult);
+
+        mockMvc.perform(put("/resultHistory/{username}/{id}",
+                testResult.getUsername(), testResult.getId())
+                .content(calculationAttributesJson)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
+                .andExpect(jsonPath("id",
+                        is(testResult.getId())))
+                .andExpect(jsonPath("username",
+                        is(testResult.getUsername())))
+                .andExpect(jsonPath("title",
+                        is(testResult.getTitle())))
+                .andExpect(jsonPath("message",
+                        is(testResult.getMessage())))
+                //.andExpect(jsonPath("entryDate", is(testResultHistory1.getEntryDate())))
+                .andExpect(jsonPath("calculationAttributes",
+                        aMapWithSize(testResult.getCalculationAttributes().size())))
+                .andExpect(jsonPath("calculationAttributes[*]",
+                        containsInAnyOrder(testResult.getCalculationAttributes().values().toArray())))
+                .andExpect(jsonPath("_links.self.href",
+                        is("http://localhost/resultHistory/" + testResult.getUsername() +
+                                "/" + testResult.getId())))
+                .andExpect(jsonPath("_links.getAllUsernameResultHistory.href",
+                        is("http://localhost/resultHistory/" + testResult.getUsername())))
+                .andExpect(jsonPath("_links.deleteSpecificResultHistory.href",
+                        is("http://localhost/resultHistory/delete/" + testResult.getUsername() +
+                                "/" + testResult.getId())))
+                .andExpect(jsonPath("_links.deleteAllUsernameResultHistory.href",
+                        is("http://localhost/resultHistory/delete/" + testResult.getUsername())))
+                .andReturn();
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    public void testUpdateSingleResultHistoryGivesNotFoundRespondIfIdNotFoun() throws Exception {
+
+        List<ResultHistory> resultHistoryList = mongoOperations.findAll(ResultHistory.class);
+
+        ResultHistory testResult = resultHistoryList.get(0);
+
+        mockMvc.perform(put("/resultHistory/{username}/{id}",
+                testResult.getUsername(), testResult.getId())
+                .content(String.valueOf(nullValue())).contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andReturn();
+    }
+
+//    @Test
+//    @WithMockUser(roles = "USER")
+//    public void testDeleteSingleResultHistoryWorks() throws Exception {
+//
+//        String message = "Username %s ResultHistory ID %s deleted.";
+//
+//        List<ResultHistory> resultHistoryList = mongoOperations.findAll(ResultHistory.class);
+//
+//        ResultHistory testResult = resultHistoryList.get(0);
+//
+////        willDoNothing().given(resultHistoryService
+////                .updateResultHistory(testResult, testResult.getId()));
+//
+//        mockMvc.perform(delete("/resultHistory/delete/{username}/{id}",
+//                testResult.getUsername(), testResult.getId()))
+//                .andDo(print())
+//                .andExpect(status().isOk())
+//                //.andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
+//                .andExpect(jsonPath("$.*message",
+//                        is(String.format(message, testResult.getUsername(), testResult.getId()))))
+//                .andExpect(jsonPath("_links.self.href",
+//                        is("http://localhost/resultHistory/" + testResult.getUsername() +
+//                                "/" + testResult.getId())))
+//                .andExpect(jsonPath("_links.getAllUsernameResultHistory.href",
+//                        is("http://localhost/resultHistory/" + testResult.getUsername())))
+////                .andExpect(jsonPath("_links.deleteSpecificResultHistory.href",
+////                        is("http://localhost/resultHistory/delete/" + testResult.getUsername() +
+////                                "/" + testResult.getId())))
+//                .andExpect(jsonPath("_links.deleteAllUsernameResultHistory.href",
+//                        is("http://localhost/resultHistory/delete/" + testResult.getUsername())))
+//                .andReturn();
+//    }
 }

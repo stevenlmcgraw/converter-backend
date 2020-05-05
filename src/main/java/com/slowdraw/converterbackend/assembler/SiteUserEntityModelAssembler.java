@@ -3,6 +3,8 @@ package com.slowdraw.converterbackend.assembler;
 import com.slowdraw.converterbackend.controller.SiteUserController;
 import com.slowdraw.converterbackend.domain.SiteUser;
 import com.slowdraw.converterbackend.exception.UserException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
@@ -14,6 +16,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Component
 public class SiteUserEntityModelAssembler
         implements RepresentationModelAssembler<SiteUser, EntityModel<SiteUser>> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SiteUserEntityModelAssembler.class);
 
     private static final String USERNAME_NOT_FOUND = "Username not found.";
 

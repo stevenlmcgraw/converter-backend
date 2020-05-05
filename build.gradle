@@ -26,18 +26,6 @@ jacocoTestReport {
         //html.destination file("${buildDir}/jacocoHtml")
     }
 
-    afterEvaluate {
-        classDirectories = files(classDirectories.files.collect {
-            fiileTree(dir: it,
-                    exclude: [
-                            '**/config/*',
-                            '**/domain/*',
-                            '**/exception/*',
-                            '**/payload/*'
-                    ])
-
-        })
-    }
 }
 
 configurations {
@@ -77,4 +65,13 @@ test.finalizedBy jacocoTestReport
 
 test {
     useJUnitPlatform()
+
+    jacoco {
+        excludes = [
+                '**/config/*',
+                '**/domain/*',
+                '**/exception/*',
+                '**/payload/*'
+        ]
+    }
 }

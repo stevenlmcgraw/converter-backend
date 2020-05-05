@@ -1,9 +1,11 @@
 package com.slowdraw.converterbackend.slices.web;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.slowdraw.converterbackend.assembler.SiteUserEntityModelAssembler;
 import com.slowdraw.converterbackend.controller.SiteUserController;
 import com.slowdraw.converterbackend.domain.Formula;
+import com.slowdraw.converterbackend.domain.ResultHistory;
 import com.slowdraw.converterbackend.domain.Role;
 import com.slowdraw.converterbackend.domain.SiteUser;
 import com.slowdraw.converterbackend.exception.UserAdvice;
@@ -39,9 +41,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -89,6 +92,17 @@ public class SiteUserControllerWebMvcTests {
 
     private SiteUser testUser;
 
+    List<Formula> checkFavoritesList;
+    private List<String> siteUserLinksList;
+
+    private String getSiteUserProfile = "http://localhost/user/%s";
+    private String addFormulaToFavorites =
+            "http://localhost/user/%s/favorites/{formulaName}";
+    private String deleteFormulaFromFavorites =
+            "http://localhost/user/%s/favorites/delete/{formulaName}";
+    private String deleteAllFormulasFromFavorites =
+            "http://localhost/user/%s/favorites/delete";
+
     @BeforeAll
     void initTests() {
 
@@ -127,6 +141,7 @@ public class SiteUserControllerWebMvcTests {
         userRole.setRoleName("ROLE_USER");
 
         Set<Role> roles = new HashSet<Role>();
+        roles.add(userRole);
 
         testUser = SiteUser.builder()
                 .username("testUsername")
@@ -141,13 +156,44 @@ public class SiteUserControllerWebMvcTests {
     }
 
 //    @Test
-//    public void testGetCurrentUserReturnsCurrentUser() {
-//        when(siteUserService.)
+//    @WithMockUser(roles = "USER")
+//    public void testGetCurrentUserReturnsCurrentUser() throws Exception {
+//
+//        UserPrincipal testUserPrincipal = UserPrincipal.createUserPrincipal(testUser);
+//
+//        ObjectMapper mapper = new ObjectMapper();
+//
+//        String testUserPrincipalJson = mapper.writeValueAsString(testUserPrincipal);
+//
+//
+//        mockMvc.perform(get("/user/currentUser")
+//                .content(testUserPrincipalJson)
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .accept(MediaTypes.HAL_JSON))
+//                .andDo(print())
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("username", is(testUser.getUsername())))
+//                .andExpect(jsonPath("email", is(testUser.getEmail())))
+//                .andReturn();
+//
+//
 //    }
 
     @Test
     @WithMockUser(roles = "USER")
     public void testGetSiteUserProfileReturnsProfileAndLinks() throws Exception {
+
+        //instantiate siteUserLinksList
+        siteUserLinksList = new ArrayList<>();
+
+        //add the _links strings to siteUserLinksList for verifying jsonPath
+        siteUserLinksList.add(String.format(getSiteUserProfile, testUser.getUsername()));
+        siteUserLinksList.add(String.format(addFormulaToFavorites, testUser.getUsername()));
+        siteUserLinksList.add(String.format(deleteFormulaFromFavorites, testUser.getUsername()));
+        siteUserLinksList.add(String.format(deleteAllFormulasFromFavorites, testUser.getUsername()));
+
+        //instantiate checkFavoritesList
+        checkFavoritesList = testUser.getFavoritesList();
 
         given(siteUserService.findUserById(testUser.getUsername())).willReturn(testUser);
 
@@ -157,9 +203,33 @@ public class SiteUserControllerWebMvcTests {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
-                .andExpect(jsonPath("username", is(testUser.getUsername())))
-                .andExpect(jsonPath("$._links.getSiteUserProfile.href",
-                        is("http://localhost/user/" + testUser.getUsername())))
+                .andExpect(jsonPath("username",
+                        is(testUser.getUsername())))
+                .andExpect(jsonPath("password",
+                        is(testUser.getPassword())))
+                .andExpect(jsonPath("email",
+                        is(testUser.getEmail())))
+                .andExpect(jsonPath("$.favoritesList[*].formulaName",
+                        containsInAnyOrder(checkFavoritesList.stream()
+                                .map(Formula::getFormulaName).toArray())))
+                .andExpect(jsonPath("$.favoritesList[*].formulaUrl",
+                        containsInAnyOrder(checkFavoritesList.stream()
+                                .map(Formula::getFormulaUrl).toArray())))
+                .andExpect(jsonPath("$.favoritesList[*].category",
+                        containsInAnyOrder(checkFavoritesList.stream()
+                                .map(Formula::getCategory).toArray())))
+                .andExpect(jsonPath("$.favoritesList[*].displayName",
+                        containsInAnyOrder(checkFavoritesList.stream()
+                                .map(Formula::getDisplayName).toArray())))
+                .andExpect(jsonPath("$.roles[0].username",
+                        is(testUser.getUsername())))
+                .andExpect(jsonPath("$.roles[0].roleName", is("ROLE_USER")))
+                .andExpect(jsonPath("_links[*].href",
+                        containsInAnyOrder(siteUserLinksList.toArray())))
+                .andExpect(jsonPath("$._links.addFormulaToFavorites.templated",
+                        is(true)))
+                .andExpect(jsonPath("$._links.deleteFormulaFromFavorites.templated",
+                        is(true)))
                 .andReturn();
     }
 
@@ -181,6 +251,18 @@ public class SiteUserControllerWebMvcTests {
     @WithMockUser(roles = "USER")
     public void testAddFormulaToFavoritesListReturnsUpdatedSiteUser() throws Exception {
 
+        //instantiate siteUserLinksList
+        siteUserLinksList = new ArrayList<>();
+
+        //add the _links strings to siteUserLinksList for verifying jsonPath
+        siteUserLinksList.add(String.format(getSiteUserProfile, testUser.getUsername()));
+        siteUserLinksList.add(String.format(addFormulaToFavorites, testUser.getUsername()));
+        siteUserLinksList.add(String.format(deleteFormulaFromFavorites, testUser.getUsername()));
+        siteUserLinksList.add(String.format(deleteAllFormulasFromFavorites, testUser.getUsername()));
+
+        //instantiate checkFavoritesList
+        checkFavoritesList = testUser.getFavoritesList();
+
         given(siteUserService.saveFormulaToFavoritesList(
                 testUser.getUsername(), "mhzToMeters")).willReturn(testUser);
 
@@ -192,11 +274,33 @@ public class SiteUserControllerWebMvcTests {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
-                .andExpect(jsonPath("username", is(testUser.getUsername())))
-                .andExpect(jsonPath("favoritesList[2].formulaName",
-                        is("mhzToMeters")))
-                .andExpect(jsonPath("$._links.getSiteUserProfile.href",
-                        is("http://localhost/user/" + testUser.getUsername())))
+                .andExpect(jsonPath("username",
+                        is(testUser.getUsername())))
+                .andExpect(jsonPath("password",
+                        is(testUser.getPassword())))
+                .andExpect(jsonPath("email",
+                        is(testUser.getEmail())))
+                .andExpect(jsonPath("$.favoritesList[*].formulaName",
+                        containsInAnyOrder(checkFavoritesList.stream()
+                                .map(Formula::getFormulaName).toArray())))
+                .andExpect(jsonPath("$.favoritesList[*].formulaUrl",
+                        containsInAnyOrder(checkFavoritesList.stream()
+                                .map(Formula::getFormulaUrl).toArray())))
+                .andExpect(jsonPath("$.favoritesList[*].category",
+                        containsInAnyOrder(checkFavoritesList.stream()
+                                .map(Formula::getCategory).toArray())))
+                .andExpect(jsonPath("$.favoritesList[*].displayName",
+                        containsInAnyOrder(checkFavoritesList.stream()
+                                .map(Formula::getDisplayName).toArray())))
+                .andExpect(jsonPath("$.roles[0].username",
+                        is(testUser.getUsername())))
+                .andExpect(jsonPath("$.roles[0].roleName", is("ROLE_USER")))
+                .andExpect(jsonPath("_links[*].href",
+                        containsInAnyOrder(siteUserLinksList.toArray())))
+                .andExpect(jsonPath("$._links.addFormulaToFavorites.templated",
+                        is(true)))
+                .andExpect(jsonPath("$._links.deleteFormulaFromFavorites.templated",
+                        is(true)))
                 .andReturn();
     }
 
@@ -217,6 +321,18 @@ public class SiteUserControllerWebMvcTests {
     @WithMockUser(roles = "USER")
     public void testUpdateUsernameFavoritesOrderReturnsLinks() throws Exception {
 
+        //instantiate siteUserLinksList
+        siteUserLinksList = new ArrayList<>();
+
+        //add the _links strings to siteUserLinksList for verifying jsonPath
+        siteUserLinksList.add(String.format(getSiteUserProfile, testUser.getUsername()));
+        siteUserLinksList.add(String.format(addFormulaToFavorites, testUser.getUsername()));
+        siteUserLinksList.add(String.format(deleteFormulaFromFavorites, testUser.getUsername()));
+        siteUserLinksList.add(String.format(deleteAllFormulasFromFavorites, testUser.getUsername()));
+
+        //instantiate checkFavoritesList
+        checkFavoritesList = testUser.getFavoritesList();
+
         String[] newOrder = {"mhzToMeters", "areaCircle", "pythagoreanTheorem"};
         ObjectMapper mapper = new ObjectMapper();
         String newOrderJson = mapper.writeValueAsString(newOrder);
@@ -232,9 +348,33 @@ public class SiteUserControllerWebMvcTests {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
-                .andExpect(jsonPath("username", is(testUser.getUsername())))
-                .andExpect(jsonPath("$._links.getSiteUserProfile.href",
-                        is("http://localhost/user/" + testUser.getUsername())))
+                .andExpect(jsonPath("username",
+                        is(testUser.getUsername())))
+                .andExpect(jsonPath("password",
+                        is(testUser.getPassword())))
+                .andExpect(jsonPath("email",
+                        is(testUser.getEmail())))
+                .andExpect(jsonPath("$.favoritesList[*].formulaName",
+                        containsInAnyOrder(checkFavoritesList.stream()
+                                .map(Formula::getFormulaName).toArray())))
+                .andExpect(jsonPath("$.favoritesList[*].formulaUrl",
+                        containsInAnyOrder(checkFavoritesList.stream()
+                                .map(Formula::getFormulaUrl).toArray())))
+                .andExpect(jsonPath("$.favoritesList[*].category",
+                        containsInAnyOrder(checkFavoritesList.stream()
+                                .map(Formula::getCategory).toArray())))
+                .andExpect(jsonPath("$.favoritesList[*].displayName",
+                        containsInAnyOrder(checkFavoritesList.stream()
+                                .map(Formula::getDisplayName).toArray())))
+                .andExpect(jsonPath("$.roles[0].username",
+                        is(testUser.getUsername())))
+                .andExpect(jsonPath("$.roles[0].roleName", is("ROLE_USER")))
+                .andExpect(jsonPath("_links[*].href",
+                        containsInAnyOrder(siteUserLinksList.toArray())))
+                .andExpect(jsonPath("$._links.addFormulaToFavorites.templated",
+                        is(true)))
+                .andExpect(jsonPath("$._links.deleteFormulaFromFavorites.templated",
+                        is(true)))
                 .andReturn();
     }
 
@@ -249,6 +389,156 @@ public class SiteUserControllerWebMvcTests {
         mockMvc.perform(post("/user/{username}/favorites/reorder",testUser.getUsername())
                 .content(newOrderJson).contentType(MediaType.APPLICATION_JSON)
                 .requestAttr("username", testUser.getUsername()))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("userNotFound", is(USERNAME_NOT_FOUND)));
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    public void testDeleteFormulaFromFavoritesListWorks() throws Exception {
+
+        //instantiate siteUserLinksList
+        siteUserLinksList = new ArrayList<>();
+
+        //add the _links strings to siteUserLinksList for verifying jsonPath
+        siteUserLinksList.add(String.format(getSiteUserProfile, testUser.getUsername()));
+        siteUserLinksList.add(String.format(addFormulaToFavorites, testUser.getUsername()));
+        siteUserLinksList.add(String.format(deleteFormulaFromFavorites, testUser.getUsername()));
+        siteUserLinksList.add(String.format(deleteAllFormulasFromFavorites, testUser.getUsername()));
+
+        Formula mhzToMeters = mongoOperations.findById("mhzToMeters", Formula.class);
+
+        //get current testUser favorites list
+        checkFavoritesList = testUser.getFavoritesList();
+
+        //remove mhzToMeters and use this list to check jsonPath
+        checkFavoritesList.remove(mhzToMeters);
+
+        //make a second user and mutate favoritesList field to ensure test cases
+        //do not depend on order they are run
+        SiteUser testUser2 = mongoOperations.findById(testUser.getUsername(), SiteUser.class);
+
+        //change testUser2 favoritesList
+        testUser2.setFavoritesList(checkFavoritesList);
+
+        //SiteUser roles field is a DBRef, we need to add it
+        testUser2.setRoles(testUser.getRoles());
+
+        given(siteUserService
+                .deleteSingleFormulaFromFavorite(testUser.getUsername(),
+                        mhzToMeters.getFormulaName()))
+                .willReturn(testUser2);
+
+        mockMvc.perform(delete("/user/{username}/favorites/delete/{formulaName}",
+                testUser2.getUsername(), mhzToMeters.getFormulaName()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
+                .andExpect(jsonPath("username",
+                        is(testUser2.getUsername())))
+                .andExpect(jsonPath("password",
+                        is(testUser2.getPassword())))
+                .andExpect(jsonPath("email",
+                        is(testUser2.getEmail())))
+                .andExpect(jsonPath("$.favoritesList[*].formulaName",
+                        containsInAnyOrder(checkFavoritesList.stream()
+                                .map(Formula::getFormulaName).toArray())))
+                .andExpect(jsonPath("$.favoritesList[*].formulaUrl",
+                        containsInAnyOrder(checkFavoritesList.stream()
+                                .map(Formula::getFormulaUrl).toArray())))
+                .andExpect(jsonPath("$.favoritesList[*].category",
+                        containsInAnyOrder(checkFavoritesList.stream()
+                                .map(Formula::getCategory).toArray())))
+                .andExpect(jsonPath("$.favoritesList[*].displayName",
+                        containsInAnyOrder(checkFavoritesList.stream()
+                                .map(Formula::getDisplayName).toArray())))
+                .andExpect(jsonPath("$.roles[0].username",
+                        is(testUser2.getUsername())))
+                .andExpect(jsonPath("$.roles[0].roleName", is("ROLE_USER")))
+                .andExpect(jsonPath("_links[*].href",
+                        containsInAnyOrder(siteUserLinksList.toArray())))
+                .andExpect(jsonPath("$._links.addFormulaToFavorites.templated",
+                        is(true)))
+                .andExpect(jsonPath("$._links.deleteFormulaFromFavorites.templated",
+                        is(true)))
+                .andReturn();
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    public void testDeleteSingleFormulaGivesUsernameNotFoundIfNotFound() throws Exception {
+
+        mockMvc.perform(delete("/user/{username}/favorites/delete/{formulaName}",
+                "unknown", "mhzToMeters"))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("userNotFound", is(USERNAME_NOT_FOUND)));
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    public void testDeleteAllFormulasFromFavoritesListWorks() throws Exception {
+
+        //instantiate siteUserLinksList
+        siteUserLinksList = new ArrayList<>();
+
+        //add the _links strings to siteUserLinksList for verifying jsonPath
+        siteUserLinksList.add(String.format(getSiteUserProfile, testUser.getUsername()));
+        siteUserLinksList.add(String.format(addFormulaToFavorites, testUser.getUsername()));
+        siteUserLinksList.add(String.format(deleteFormulaFromFavorites, testUser.getUsername()));
+        siteUserLinksList.add(String.format(deleteAllFormulasFromFavorites, testUser.getUsername()));
+
+
+        //get current testUser favorites list
+        checkFavoritesList = testUser.getFavoritesList();
+
+
+        //make a second user and mutate favoritesList field to ensure test cases
+        //do not depend on order they are run
+        SiteUser testUser2 = mongoOperations.findById(testUser.getUsername(), SiteUser.class);
+
+        //change testUser2 favoritesList to have nothing
+        testUser2.setFavoritesList(new ArrayList<>());
+
+        //SiteUser roles field is a DBRef, we need to add it
+        testUser2.setRoles(testUser.getRoles());
+
+        given(siteUserService
+                .deleteAllFavorites(testUser.getUsername()))
+                .willReturn(testUser2);
+
+        mockMvc.perform(delete("/user/{username}/favorites/delete",
+                testUser2.getUsername()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaTypes.HAL_JSON_VALUE))
+                .andExpect(jsonPath("username",
+                        is(testUser2.getUsername())))
+                .andExpect(jsonPath("password",
+                        is(testUser2.getPassword())))
+                .andExpect(jsonPath("email",
+                        is(testUser2.getEmail())))
+                .andExpect(jsonPath("$.favoritesList",
+                        empty()))
+                .andExpect(jsonPath("$.roles[0].username",
+                        is(testUser2.getUsername())))
+                .andExpect(jsonPath("$.roles[0].roleName", is("ROLE_USER")))
+                .andExpect(jsonPath("_links[*].href",
+                        containsInAnyOrder(siteUserLinksList.toArray())))
+                .andExpect(jsonPath("$._links.addFormulaToFavorites.templated",
+                        is(true)))
+                .andExpect(jsonPath("$._links.deleteFormulaFromFavorites.templated",
+                        is(true)))
+                .andReturn();
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    public void testDeleteAllFormulasGivesUsernameNotFoundIfNotFound() throws Exception {
+
+        mockMvc.perform(delete("/user/{username}/favorites/delete",
+                "unknown", "mhzToMeters"))
                 .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("userNotFound", is(USERNAME_NOT_FOUND)));

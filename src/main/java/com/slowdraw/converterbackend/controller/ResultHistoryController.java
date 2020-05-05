@@ -55,7 +55,9 @@ public class ResultHistoryController {
     }
 
     @PostMapping
-    public Object saveResultHistory(@CurrentSiteUser UserPrincipal currentUser, @Valid @RequestBody ResultHistory resultHistory, BindingResult bindingResult) {
+    public Object saveResultHistory(@CurrentSiteUser UserPrincipal currentUser,
+                                    @Valid @RequestBody ResultHistory resultHistory,
+                                    BindingResult bindingResult) {
 
         if(bindingResult.hasErrors())
             return resultHistoryService.errorMap(bindingResult);
@@ -79,13 +81,12 @@ public class ResultHistoryController {
 
 
     @DeleteMapping("/delete/{username}/{id}")
-    public ResponseEntity<?> deleteSingleResultHistory(@PathVariable String username, @PathVariable String id) {
+    public ResponseEntity<?> deleteSingleResultHistory(@PathVariable String username,
+                                                       @PathVariable String id) {
 
         resultHistoryService.deleteSingleResultHistory(id);
 
-        return new ResponseEntity<>(linksForDeleteMethods
-                .getBody(username, id),
-                HttpStatus.OK);
+        return linksForDeleteMethods.getBody(username, id);
     }
 
     @DeleteMapping("/delete/{username}")
