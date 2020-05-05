@@ -4,6 +4,8 @@ import com.slowdraw.converterbackend.domain.ResultHistory;
 import com.slowdraw.converterbackend.exception.ResultHistoryException;
 import com.slowdraw.converterbackend.repository.ResultHistoryRepository;
 import lombok.var;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -15,6 +17,8 @@ import java.util.List;
 
 @Service
 public class ResultHistoryService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResultHistoryService.class);
 
     private final ResultHistoryRepository resultHistoryRepository;
 
@@ -50,12 +54,20 @@ public class ResultHistoryService {
     }
 
     public void deleteSingleResultHistory(String id) {
+
         resultHistoryRepository.delete(
                 resultHistoryRepository.findById(id)
-                        .orElseThrow(() -> new ResultHistoryException("No record with ID " + id + " found." )));
+                        .orElseThrow(() ->
+                                new ResultHistoryException("No record with ID " + id + " found." )));
     }
 
     public void deleteUsernameAllResultHistory(String username) {
+
+        if(resultHistoryRepository.findByUsername(username).isEmpty()) {
+            throw new ResultHistoryException(
+                    "No result history exists for Username " + username + " .");
+        }
+
         resultHistoryRepository.removeByUsername(username);
     }
 

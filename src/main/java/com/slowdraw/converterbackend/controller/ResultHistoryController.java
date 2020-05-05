@@ -9,7 +9,6 @@ import com.slowdraw.converterbackend.security.UserPrincipal;
 import com.slowdraw.converterbackend.service.ResultHistoryService;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -94,8 +93,7 @@ public class ResultHistoryController {
 
         resultHistoryService.deleteUsernameAllResultHistory(username);
 
-        return new ResponseEntity<>(linksForDeleteMethods
-                .getBody(username),
-                HttpStatus.OK);
+        return linksForDeleteMethods
+                .getBody(username);
     }
 }

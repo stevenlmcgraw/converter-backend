@@ -4,6 +4,7 @@ import org.springframework.hateoas.Link;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,6 +65,7 @@ public class ResultHistoryAssembleLinksForDeleteMethods {
         return map;
     }
 
+    @ResponseBody
     public ResponseEntity<List<Object>> getBody(String username, String id) {
 
         bodyList.clear();
@@ -75,6 +77,7 @@ public class ResultHistoryAssembleLinksForDeleteMethods {
         return new ResponseEntity<>(bodyList, HttpStatus.OK);
     }
 
+    @ResponseBody
     public ResponseEntity<List<Object>> getBody(String username) {
 
         bodyList.clear();

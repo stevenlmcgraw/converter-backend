@@ -32,6 +32,8 @@ public class FormulaService {
 
     public Formula getSingleFormulaInfo(String name) {
 
+        LOGGER.info("Hit formulaService get");
+
         //sanity check: formula exists
         if(!formulasRepository.findById(name).isPresent())
 
