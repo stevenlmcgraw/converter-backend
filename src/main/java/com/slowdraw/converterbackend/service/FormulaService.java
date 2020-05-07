@@ -16,7 +16,7 @@ public class FormulaService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FormulaService.class);
 
-    private static final String FORMULA_NOT_FOUND = "Formula not found.";
+    private static final String FORMULA_NOT_FOUND = "Formula for %s not found.";
 
     private final FormulasRepository formulasRepository;
 
@@ -32,20 +32,17 @@ public class FormulaService {
 
     public Formula getSingleFormulaInfo(String name) {
 
-        LOGGER.info("Hit formulaService get");
-
         //sanity check: formula exists
         if(!formulasRepository.findById(name).isPresent())
 
-            throw new FormulaException(FORMULA_NOT_FOUND);
+            throw new FormulaException(String.format(
+                    FORMULA_NOT_FOUND,
+                    name));
 
         return formulasRepository.findById(name)
                 .orElseThrow(() ->
-                        new FormulaException(FORMULA_NOT_FOUND));
-    }
-
-    public Boolean formulaExists(String name) {
-
-        return formulasRepository.existsById(name);
+                        new FormulaException(String.format(
+                                FORMULA_NOT_FOUND,
+                                name)));
     }
 }

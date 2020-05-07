@@ -19,6 +19,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import javax.validation.Valid;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 
 @RestController
@@ -84,6 +85,7 @@ public class LoginController {
                 .username(registerUsernameRequest.getUsername())
                 .password(registerUsernameRequest.getPassword())
                 .email(registerUsernameRequest.getEmail())
+                .favoritesList(new ArrayList<>())
                 .build();
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));

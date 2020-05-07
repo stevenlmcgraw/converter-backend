@@ -20,23 +20,29 @@ public class ResultHistoryService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ResultHistoryService.class);
 
+    private static final String RESULT_HISTORY_NOT_FOUND = "No record with ID %s found.";
+    private static final String NO_HISTORY_FOR_USERNAME =
+            "No result history exists for Username %s.";
+
     private final ResultHistoryRepository resultHistoryRepository;
 
     public ResultHistoryService(ResultHistoryRepository resultHistoryRepository) {
         this.resultHistoryRepository = resultHistoryRepository;
     }
 
-    public List<ResultHistory> findAll() {
-        return resultHistoryRepository.findAll();
-    }
-
     public ResultHistory findById(String id) {
         return resultHistoryRepository.findById(id)
-                .orElseThrow(() -> new ResultHistoryException("No record with ID " + id + " found."));
+                .orElseThrow(() ->
+                        new ResultHistoryException(
+                                String.format(RESULT_HISTORY_NOT_FOUND, id)));
     }
 
     public List<ResultHistory> findAllByUsername (String username) {
-        return resultHistoryRepository.findByUsername(username);
+        return resultHistoryRepository.findByUsername(username)
+                .orElseThrow(() ->
+                        new ResultHistoryException(
+                                String.format(NO_HISTORY_FOR_USERNAME,
+                                        username)));
     }
 
     public ResultHistory persistResultHistory(ResultHistory resultHistory) {
@@ -58,17 +64,17 @@ public class ResultHistoryService {
         resultHistoryRepository.delete(
                 resultHistoryRepository.findById(id)
                         .orElseThrow(() ->
-                                new ResultHistoryException("No record with ID " + id + " found." )));
+                                new ResultHistoryException(
+                                        String.format(RESULT_HISTORY_NOT_FOUND, id))));
     }
 
     public void deleteUsernameAllResultHistory(String username) {
 
-        if(resultHistoryRepository.findByUsername(username).isEmpty()) {
-            throw new ResultHistoryException(
-                    "No result history exists for Username " + username + " .");
-        }
-
-        resultHistoryRepository.removeByUsername(username);
+        resultHistoryRepository.removeByUsername(username)
+                .orElseThrow(() ->
+                        new ResultHistoryException(
+                                String.format(NO_HISTORY_FOR_USERNAME,
+                                        username)));
     }
 
     public ResponseEntity<?> errorMap(BindingResult result){
