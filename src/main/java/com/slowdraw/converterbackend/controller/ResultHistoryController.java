@@ -9,15 +9,11 @@ import com.slowdraw.converterbackend.security.UserPrincipal;
 import com.slowdraw.converterbackend.service.ResultHistoryService;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.Link;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
@@ -58,7 +54,9 @@ public class ResultHistoryController {
     }
 
     @PostMapping
-    public Object saveResultHistory(@CurrentSiteUser UserPrincipal currentUser, @Valid @RequestBody ResultHistory resultHistory, BindingResult bindingResult) {
+    public Object saveResultHistory(@CurrentSiteUser UserPrincipal currentUser,
+                                    @Valid @RequestBody ResultHistory resultHistory,
+                                    BindingResult bindingResult) {
 
         if(bindingResult.hasErrors())
             return resultHistoryService.errorMap(bindingResult);
@@ -77,18 +75,17 @@ public class ResultHistoryController {
             return resultHistoryService.errorMap(bindingResult);
 
         return new EntityModel<>(resultHistoryEntityModelAssembler
-                .toModel(resultHistoryService.updateResultHistory(resultHistory, username, id)));
+                .toModel(resultHistoryService.updateResultHistory(resultHistory, id)));
     }
 
 
     @DeleteMapping("/delete/{username}/{id}")
-    public ResponseEntity<?> deleteSingleResultHistory(@PathVariable String username, @PathVariable String id) {
+    public ResponseEntity<?> deleteSingleResultHistory(@PathVariable String username,
+                                                       @PathVariable String id) {
 
         resultHistoryService.deleteSingleResultHistory(id);
 
-        return new ResponseEntity<>(linksForDeleteMethods
-                .getBody(username, id),
-                HttpStatus.OK);
+        return linksForDeleteMethods.getBody(username, id);
     }
 
     @DeleteMapping("/delete/{username}")
@@ -96,8 +93,7 @@ public class ResultHistoryController {
 
         resultHistoryService.deleteUsernameAllResultHistory(username);
 
-        return new ResponseEntity<>(linksForDeleteMethods
-                .getBody(username),
-                HttpStatus.OK);
+        return linksForDeleteMethods
+                .getBody(username);
     }
 }

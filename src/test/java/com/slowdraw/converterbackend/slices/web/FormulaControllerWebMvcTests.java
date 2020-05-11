@@ -47,7 +47,7 @@ public class FormulaControllerWebMvcTests {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FormulaControllerWebMvcTests.class);
 
-    private final String FORMULA_NOT_FOUND = "Formula not found.";
+    private static final String FORMULA_NOT_FOUND = "Formula not found.";
 
     @MockBean
     private FormulaService formulaService;

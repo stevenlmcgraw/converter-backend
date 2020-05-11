@@ -13,11 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class SiteUserDetailsService implements UserDetailsService {
 
-    private SiteUserRepository siteUserRepository;
+    private final SiteUserRepository siteUserRepository;
 
-    private RoleRepository roleRepository;
+    private final RoleRepository roleRepository;
 
-    private PasswordEncoder bCryptPasswordEncoder;
+    private final PasswordEncoder bCryptPasswordEncoder;
 
     public SiteUserDetailsService(SiteUserRepository siteUserRepository,
                                   RoleRepository roleRepository,

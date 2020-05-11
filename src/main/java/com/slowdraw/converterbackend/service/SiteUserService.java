@@ -1,6 +1,5 @@
 package com.slowdraw.converterbackend.service;
 
-import com.slowdraw.converterbackend.domain.Formula;
 import com.slowdraw.converterbackend.domain.SiteUser;
 import com.slowdraw.converterbackend.exception.UserException;
 import com.slowdraw.converterbackend.repository.SiteUserRepository;
@@ -17,14 +16,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class SiteUserService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SiteUserService.class);
 
-    private final String USERNAME_NOT_FOUND = "Username not found.";
+    private static final String USERNAME_NOT_FOUND = "Username %s not found.";
 
     private final SiteUserRepository siteUserRepository;
     private final FormulaService formulaService;
@@ -34,32 +32,35 @@ public class SiteUserService {
         this.formulaService = formulaService;
     }
 
-    public SiteUser persistNewUser(SiteUser user) {
-        return siteUserRepository.save(user);
-    }
-
     public SiteUser findUserById(String username) {
 
         //sanity check: username exists
         if(!siteUserRepository.findById(username).isPresent())
-            throw new UserException(USERNAME_NOT_FOUND);
+            throw new UserException(
+                    String.format(USERNAME_NOT_FOUND, username));
 
         return siteUserRepository.findById(username)
                 .orElseThrow(() ->
-                        new UserException(USERNAME_NOT_FOUND));
+                        new UserException(String.format(
+                                USERNAME_NOT_FOUND,
+                                username)));
     }
 
     public SiteUser updateUserPassword(String username, String newPassword) {
 
         //sanity check: username exists
         if(!siteUserRepository.findById(username).isPresent())
-            throw new UserException(USERNAME_NOT_FOUND);
+            throw new UserException(
+                    String.format(USERNAME_NOT_FOUND, username));
 
         return siteUserRepository.findById(username).map(
                 user -> {
                     user.setPassword(newPassword);
                     return siteUserRepository.save(user);
-                }).orElseThrow(() -> new UserException(USERNAME_NOT_FOUND)
+                }).orElseThrow(() ->
+                new UserException(String.format(
+                        USERNAME_NOT_FOUND,
+                        username))
         );
     }
 
@@ -67,24 +68,13 @@ public class SiteUserService {
         siteUserRepository.deleteById(username);
     }
 
-    public List<Formula> getUsernameFavoritesSet(String username) {
-
-        //sanity check: username exists
-        if(!siteUserRepository.findById(username).isPresent())
-            throw new UserException(USERNAME_NOT_FOUND);
-
-        SiteUser siteUser = siteUserRepository.findById(username)
-                .orElseThrow(() ->
-                        new UserException(USERNAME_NOT_FOUND));
-
-        return siteUser.getFavoritesList();
-    }
 
     public SiteUser modifyUsernameFavoritesList(String username, List<String> newPositions) {
 
         //sanity check: username exists
         if(!siteUserRepository.findById(username).isPresent())
-            throw new UserException(USERNAME_NOT_FOUND);
+            throw new UserException(
+                    String.format(USERNAME_NOT_FOUND, username));
 
         return siteUserRepository.findById(username).map(
                 user -> {
@@ -93,28 +83,18 @@ public class SiteUserService {
                     ).collect(Collectors.toList()));
                     return siteUserRepository.save(user);
                 }
-        ).orElseThrow(() -> new UserException(USERNAME_NOT_FOUND));
+        ).orElseThrow(() ->
+                new UserException(String.format(
+                        USERNAME_NOT_FOUND,
+                        username)));
     }
 
     public SiteUser saveFormulaToFavoritesList(String username, String formulaName) {
 
         //sanity check: username exists
         if(!siteUserRepository.findById(username).isPresent())
-            throw new UserException(USERNAME_NOT_FOUND);
-
-        //if SiteUser has no favorites create List and add formula
-        if(siteUserRepository.findById(username).get().getFavoritesList() == null ||
-        siteUserRepository.findById(username).get().getFavoritesList().size() == 0) {
-            return siteUserRepository.findById(username).map(
-                    user -> {
-                        user.setFavoritesList(Stream.of(formulaService
-                                .getSingleFormulaInfo(formulaName))
-                                .collect(Collectors.toList()));
-
-                        return siteUserRepository.save(user);
-                    }).orElseThrow(() ->
-                            new UserException(USERNAME_NOT_FOUND));
-        }
+            throw new UserException(
+                    String.format(USERNAME_NOT_FOUND, username));
 
         //make sure there are no duplicates in favorites list
         if(!siteUserRepository.findById(username).get()
@@ -124,7 +104,10 @@ public class SiteUserService {
                 .collect(Collectors.toList()).isEmpty()) {
 
             return siteUserRepository.save(siteUserRepository.findById(username)
-                    .orElseThrow(() -> new UserException(USERNAME_NOT_FOUND)));
+                    .orElseThrow(() ->
+                            new UserException(String.format(
+                                    USERNAME_NOT_FOUND,
+                                    username))));
         }
 
         //add to favorites list
@@ -135,28 +118,36 @@ public class SiteUserService {
 
                     return siteUserRepository.save(user);
                 }
-        ).orElseThrow(() -> new UserException(USERNAME_NOT_FOUND));
+        ).orElseThrow(() ->
+                new UserException(String.format(
+                        USERNAME_NOT_FOUND,
+                        username)));
     }
 
     public SiteUser deleteAllFavorites(String username) {
 
         //sanity check: username exists
         if(!siteUserRepository.findById(username).isPresent())
-            throw new UserException(USERNAME_NOT_FOUND);
+            throw new UserException(
+                    String.format(USERNAME_NOT_FOUND, username));
 
         return siteUserRepository.findById(username).map(
                 user -> {
                     user.setFavoritesList(Collections.emptyList());
                     return siteUserRepository.save(user);
                 }
-        ).orElseThrow(() -> new UserException(USERNAME_NOT_FOUND));
+        ).orElseThrow(() ->
+                new UserException(String.format(
+                        USERNAME_NOT_FOUND,
+                        username)));
     }
 
     public SiteUser deleteSingleFormulaFromFavorite(String username, String formulaName) {
 
         //sanity check: username exists
         if(!siteUserRepository.findById(username).isPresent())
-            throw new UserException(USERNAME_NOT_FOUND);
+            throw new UserException(
+                    String.format(USERNAME_NOT_FOUND, username));
 
         return siteUserRepository.findById(username).map(
                 user -> {
@@ -167,7 +158,10 @@ public class SiteUserService {
 
                     return siteUserRepository.save(user);
                 }
-        ).orElseThrow(() -> new UserException(USERNAME_NOT_FOUND));
+        ).orElseThrow(() ->
+                new UserException(String.format(
+                        USERNAME_NOT_FOUND,
+                        username)));
     }
 
     public Boolean checkUsernameAvailability(String username) {

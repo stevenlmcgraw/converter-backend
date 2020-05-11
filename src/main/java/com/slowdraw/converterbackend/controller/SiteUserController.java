@@ -1,7 +1,6 @@
 package com.slowdraw.converterbackend.controller;
 
 import com.slowdraw.converterbackend.assembler.SiteUserEntityModelAssembler;
-import com.slowdraw.converterbackend.exception.FormulaException;
 import com.slowdraw.converterbackend.exception.UserException;
 import com.slowdraw.converterbackend.payload.SiteUserSummary;
 import com.slowdraw.converterbackend.security.CurrentSiteUser;
